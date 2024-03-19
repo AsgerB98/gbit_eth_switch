@@ -22,7 +22,31 @@ end entity mac_learner;
 
 architecture arch of mac_learner is
 
+
+
+    component SRAM
+        port (
+          clk : in std_logic;
+          reset : in std_logic;
+          address : in std_logic_vector(8 downto 0);
+          data_in : in std_logic_vector(50 downto 0);
+          data_out : out std_logic_vector(3 downto 0)
+        );
+      end component;
+
+
+
+
 begin
+
+    SRAM_inst : SRAM
+    port map(
+      clk => clk,
+      reset => reset,
+      address => address_next,
+      data_in => data_in,
+      data_out => data_out
+    );
 
     
 

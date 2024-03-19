@@ -61,15 +61,19 @@ begin
 
    -- Stimulus generation process
    stimulus_process : process
-    variable message_index : integer := 0;
-     constant message    : std_logic_vector(47 downto 0) := X"1122334455";
+    constant saddr    : std_logic_vector(47 downto 0) := X"1122334455FF";
+    constant port1    : std_logic_vector(2 downto 0) := "0001";
+    
+    constant daddr : std_logic_vector(47 downto 0) := X"123123123200";
+    
     --000000000001000100100010001100110100010001010101
   begin
     --reset <= '0';
 
     if rising_edge(clk) then
-        saddress <= message;
-
+        saddress    <= saddr;
+        daddress    <= daddr;
+        portnum     <= port1;
     end if;
 
     -- Wait for some time after sending the message (optional)
