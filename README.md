@@ -1,6 +1,25 @@
 # gbit_eth_switch
 
 
+# Entity: mac_learner 
+- **File**: mac_learner.vhd
+
+## Diagram
+![Diagram](mac_learner.svg "Diagram")
+## Ports
+
+| Port name | Direction | Type                           | Description |
+| --------- | --------- | ------------------------------ | ----------- |
+| clk       | in        | std_logic                      |             |
+| reset     | in        | std_logic                      |             |
+| saddress  | in        | std_logic_vector (47 downto 0) |             |
+| daddress  | in        | std_logic_vector (47 downto 0) |             |
+| portnum   | in        | std_logic_vector (2 downto 0)  |             |
+| sel       | out       | std_logic_vector (2 downto 0)  |             |
+
+## Instantiations
+
+- SRAM_inst: SRAM
 
 - **Bold Text**
 - *Italicized Text*
