@@ -11,7 +11,7 @@ use ieee.numeric_std.all;
 
 entity mac_learner_tb is
 end;
--- HEJ
+-- HEJ hej
 architecture bench of mac_learner_tb is
   -- Clock period
   constant clk_period : time := 4 ns; 
