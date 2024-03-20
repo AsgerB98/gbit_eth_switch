@@ -11,11 +11,11 @@ use ieee.numeric_std.all;
 
 entity mac_learner_tb is
 end;
-
+-- HEJ
 architecture bench of mac_learner_tb is
   -- Clock period
   constant clk_period : time := 4 ns; 
-
+ -- HEJ
   -- Generics
   -- Ports
   signal clk : std_logic;
