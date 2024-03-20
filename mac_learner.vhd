@@ -43,7 +43,8 @@ begin
     port map(
       clk => clk,
       reset => reset,
-      address => address_next,
+      RW => RW,
+      address => address,
       data_in => data_in,
       data_out => data_out
     );

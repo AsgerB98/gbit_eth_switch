@@ -24,24 +24,21 @@ architecture rtl of fcs_check_par is
     signal frameend : integer range 0 to 1 := 0;
     signal status : std_logic := '0';
     signal R : std_logic_vector(31 downto 0) := "00000000000000000000000000000000";
+    signal startbit : std_logic := '0';
+    
 begin
 
 process(clk, end_of_frame, start_of_frame, frameend, count, reset)
 begin
 
-if (reset = '1') then
-    R <= (others => '0'); 
-    frameend <= 0;
-    count <= -1;
-    count2 <= 0;
-    status <= '0';
-    reset <= '0';
 
-elsif rising_edge(clk) then
+
+if rising_edge(clk) then
 
 
 if (start_of_frame = '1' or end_of_frame = '1') then
 count <= 0;
+startbit <= '1';
 end if;
 if (count < 4) then
 count <= count + 1;
@@ -53,7 +50,7 @@ if (end_of_frame = '1') then
 frameend <= 1;
 end if;
 
-if count = -1 then 
+if count = -1 then --or startbit = '1' then 
   --R(0) <= not data_in xor (R(31) and POLYNOMIUM(0)); --g0
 elsif ((count < 4 or start_of_frame = '1' or end_of_frame = '1')) then 
 
@@ -109,8 +106,26 @@ R(31) <= R(23) xor R(29);
 if (frameend = 1 and count = 3) then
 if (R="00000000000000000000000000000000") then
 fcs_error <= '0';
+R <= (others => '0'); 
+frameend <= 0;
+--if startbit = '1' then
+--  count <= 1;
+--else
+count <= -1;
+--end if;
+count2 <= 0;
+status <= '0';
 else
 fcs_error <= '1';
+R <= (others => '0');
+frameend <= 0;
+--if startbit = '1' then
+--  count <= 1;
+--else
+count <= -1;
+--end if;
+count2 <= 0;
+status <= '0';
 end if;
 end if;
 

@@ -48,17 +48,11 @@ begin
   -- Stimulus generation process
   stimulus_process : process
     variable message_index : integer := 0;
-    constant message    : std_logic_vector(0 to 511) := X"0010A47BEA8000123456789008004500002EB3FE000080110540C0A8002CC0A8000404000400001A2DE8000102030405060708090A0B0C0D0E0F1011E6C53DB2"; -- Use hexadecimal notation
+    constant message    : std_logic_vector(0 t o 1023) := X"0010A47BEA8000123456789008004500002EB3FE000080110540C0A8002CC0A8000404000400001A2DE8000102030405060708090A0B0C0D0E0F1011E6C53DB20010A47BEA8000123456789008004500002EB3FE000080110540C0A8002CC0A8000404000400001A2DE8000102030405060708090A0B0C0D0E0F1011E6C53DB2"; -- Use hexadecimal notation
     --constant message    : std_logic_vector(0 to 511) := X"af10A47BEA8000123456789008004500002EB3FE000080110540C0A8002CC0A8000404000400001A2DE8000102030405060708090A0B0C0D0E0Fff00ffC53DB2"; -- Use hexadecimal notation
 
   begin
     reset <= '0';
-
-    if (reset = '1') then
-        message_index <= 0;
-        end_of_frame <= 0;
-        reset <= 0;
-    end if
     while message_index < message'length loop
       wait until rising_edge(clk);
       data_in(0) <= message(message_index);
@@ -71,17 +65,16 @@ begin
       data_in(7) <= message(message_index +7);
 
       -- Assert start_of_frame for one clock cycle when data begins
-      if message_index = 0 then
+      if message_index = 0 or message_index = 512 then
         start_of_frame <= '1';
         --wait for 2*clk_period; -- Hold start_of_frame high for one clock cycle
       else
         start_of_frame <= '0';
       end if;
-
+      
       -- Assert end_of_frame for one clock cycle when 32 bits remain
-      if message_index = message'length - 32 then
+      if message_index = message'length - 32 or message_index = message'length -(512+32) then
         end_of_frame <= '1';
-        reset <= '1';
         --wait for 2*clk_period; -- Hold end_of_frame high for one clock cycle
       else
         end_of_frame <= '0';
