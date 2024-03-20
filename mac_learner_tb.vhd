@@ -20,8 +20,8 @@ architecture bench of mac_learner_tb is
   -- Ports
   signal clk : std_logic;
   signal reset : std_logic;
-  signal saddress : std_logic_vector (47 downto 0);
-  signal daddress : std_logic_vector (47 downto 0);
+  signal sMAC : std_logic_vector (47 downto 0);
+  signal dMAC : std_logic_vector (47 downto 0);
   signal portnum : std_logic_vector (2 downto 0);
   signal sel : std_logic_vector (2 downto 0);
 

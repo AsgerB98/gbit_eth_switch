@@ -10,8 +10,8 @@ entity mac_learner is
     port (
         clk             : in std_logic;
         reset           : in std_logic;
-        saddress        : in std_logic_vector (47 downto 0);
-        daddress        : in std_logic_vector (47 downto 0);
+        sMAC            : in std_logic_vector (47 downto 0);
+        dMAC            : in std_logic_vector (47 downto 0);
         portnum         : in std_logic_vector (2 downto 0);
 
         sel             : out std_logic_vector (2 downto 0)
