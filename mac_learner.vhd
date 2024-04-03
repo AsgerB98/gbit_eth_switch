@@ -141,6 +141,8 @@ begin
       when answer =>
       if memory = X"000000000000" then
         sel <= "1111";
+      else
+        sel <= "0" & sel_from_mem;
       end if;
 
     
