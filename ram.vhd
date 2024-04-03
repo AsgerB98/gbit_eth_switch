@@ -11,7 +11,7 @@ entity ram is
         clk     : in std_logic;
         reset   : in std_logic;
         
-        address : in std_logic_vector(8 downto 0);
+        address : in std_logic_vector(12 downto 0);
         data_in : in std_logic_vector(50 downto 0);
         RW      : in std_logic;
         
