@@ -9,7 +9,6 @@ architecture test of fcs_check_par_tb is
   signal clk        : std_logic := '0';
   signal reset      : std_logic := '1';
   signal start_of_frame : std_logic := '0';
-  signal end_of_frame   : std_logic := '0';
   signal data_in      : std_logic_vector(7 downto 0);
   signal fcs_error   : std_logic := '0';
 
@@ -18,13 +17,10 @@ architecture test of fcs_check_par_tb is
       clk        : in std_logic;
       reset      : in std_logic;
       start_of_frame : in std_logic;
-      end_of_frame   : in std_logic;
       data_in      : in std_logic_vector(7 downto 0);
       fcs_error   : out std_logic
     );
   end component;
-
-  -- Clock period
   constant clk_period : time := 2 ns;
 
 begin
@@ -34,7 +30,6 @@ begin
       clk         => clk,
       reset       => reset,
       start_of_frame => start_of_frame,
-      end_of_frame   => end_of_frame,
       data_in       => data_in,
       fcs_error    => fcs_error
     );
@@ -71,12 +66,6 @@ begin
         start_of_frame <= '1';
       else
         start_of_frame <= '0';
-      end if;
-      
-      if message_index = message'length - 32 or message_index = message'length -(512+32) or message_index = message'length -(1024+32) or message_index = message'length -(1536+32) then
-        end_of_frame <= '1';
-      else
-        end_of_frame <= '0';
       end if;
 
       message_index := message_index + 8;
