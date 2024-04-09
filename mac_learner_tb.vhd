@@ -69,10 +69,6 @@ begin
   --   MAC_inc <= '0';
   -- end process;
 
-
-
-
-
   input : process
     variable msg_index : integer := 0;
     --constant srcmsg : std_logic_vector(47 downto 0) := X"02C3E4333DEF"; --02C3E4333DEF 793
@@ -82,14 +78,11 @@ begin
     constant ports  : std_logic_vector(2 downto 0)  := "000";
   begin
 
-
     if countMsg = 0 or countMsg = 96 then
       MAC_inc <= '1';
     else
       MAC_inc <= '0';
     end if;
-
-
     
     while countMsg < dstmsg'length loop
       wait until rising_edge(clk);
@@ -206,7 +199,6 @@ begin
     end loop;
     wait for 50 ns;
   end process;
-
 
 
 end architecture;

@@ -1,10 +1,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity fcs_check_par_tb is
-end entity fcs_check_par_tb;
+entity FCS_tb is
+end entity FCS_tb;
 
-architecture test of fcs_check_par_tb is
+architecture test of FCS_tb is
 
   signal clk        : std_logic := '0';
   signal reset      : std_logic := '1';
@@ -12,7 +12,7 @@ architecture test of fcs_check_par_tb is
   signal data_in      : std_logic_vector(7 downto 0);
   signal fcs_error   : std_logic := '0';
 
-  component fcs_check_par is
+  component FCS is
     port (
       clk        : in std_logic;
       reset      : in std_logic;
@@ -25,7 +25,7 @@ architecture test of fcs_check_par_tb is
 
 begin
 
-  dut : fcs_check_par
+  dut : FCS
     port map (
       clk         => clk,
       reset       => reset,

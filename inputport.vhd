@@ -6,33 +6,28 @@ use ieee.math_real.all;
 
 
 entity inputport is
-    port (
-        clk     : in std_logic;
-        reset   : in std_logic;
-        data_in : in std_logic_vector (7 downto 0);
-        valid   : in std_logic;
-        read_en : in std_logic;
+  port (
+    clk     : in std_logic;
+    reset   : in std_logic;
+    data_in : in std_logic_vector (7 downto 0);
+    valid   : in std_logic;
+    read_en : in std_logic;
 
-        srcMac : out std_logic_vector(47 downto 0);
-        dstMac : out std_logic_vector(47 downto 0);
-        FCS_error : out std_logic;
-        data_out: out std_logic_vector (7 downto 0)
-    );
+    srcMac : out std_logic_vector(47 downto 0);
+    dstMac : out std_logic_vector(47 downto 0);
+    FCS_error : out std_logic;
+    data_out: out std_logic_vector (7 downto 0)
+  );
 end entity;
 
 
 architecture inputport_arch of inputport is
-   
-
   signal empty_fifo : std_logic := '0';
   signal full_fifo : std_logic := '0';
   signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
 
-  signal SoF  : std_logic := '0';
-  signal EoF  : std_logic := '0'; 
+  signal SoF  : std_logic := '1';
   
-  
-
   component FIFOSwitch is
     port (
       clock		: IN STD_LOGIC ;
@@ -51,14 +46,13 @@ architecture inputport_arch of inputport is
       clk : in std_logic;
       reset : in std_logic;
       start_of_frame : in std_logic;
-      end_of_frame : in std_logic;
       data_in : in std_logic_vector(7 downto 0);
       fcs_error : out std_logic
     );
   end component;
+
 begin
 
--- Port mapping
   fifo_ports : FIFOSwitch
     port map (
       clock => clk,
@@ -72,14 +66,21 @@ begin
     );
 
 fcs_ports : FCS
-port map (
+  port map (
     clk  =>clk,
     reset  =>reset,
     start_of_frame  => SoF, 
-    end_of_frame  => EoF, 
     data_in  => data_in,
     fcs_error => FCS_error
-    );
+  );
+
+
+  logic : process (SoF)
+  begin
+    if SoF = '1' then
+      SoF <= '0';
+    end if;
+  end process;
     
 
 end architecture;
