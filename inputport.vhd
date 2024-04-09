@@ -27,6 +27,8 @@ architecture inputport_arch of inputport is
   signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
 
   signal SoF  : std_logic := '1';
+  signal counter : integer := 0;
+  
   
   component FIFOSwitch is
     port (
@@ -75,9 +77,20 @@ fcs_ports : FCS
   );
 
 
-  logic : process (SoF)
+  -- logic : process (SoF)
+  -- begin
+  --   if SoF = '1' then
+  --     SoF <= '0';
+  --   end if;
+  -- end process;
+
+  clk_proc : process (clk, counter)
   begin
-    if SoF = '1' then
+    if rising_edge(clk) then
+      counter <= counter +1;
+    end if;
+
+    if counter = 2 then
       SoF <= '0';
     end if;
   end process;
