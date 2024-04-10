@@ -17,7 +17,7 @@ architecture bench of inputport_tb is
   signal reset : std_logic := '1';
   signal data_in : std_logic_vector (7 downto 0);
   signal valid : std_logic;
-  signal read_en : std_logic;
+
   signal srcMac : std_logic_vector(47 downto 0);
   signal dstMac : std_logic_vector(47 downto 0);
   signal FCS_error : std_logic;
@@ -29,7 +29,6 @@ architecture bench of inputport_tb is
       reset   : in std_logic;
       data_in : in std_logic_vector (7 downto 0);
       valid   : in std_logic;
-      read_en : in std_logic;
 
       srcMac : out std_logic_vector(47 downto 0);
       dstMac : out std_logic_vector(47 downto 0);
@@ -45,7 +44,6 @@ begin
       reset => reset,
       data_in => data_in,
       valid => valid,
-      read_en => read_en,
       srcMac => srcMac,
       dstMac => dstMac,
       FCS_error => FCS_error,
@@ -54,7 +52,6 @@ begin
 
   clk_process : process
   begin
-    --read_en <= '1';
     clk <= '1'; wait for clk_period/2;
     clk <= '0'; wait for clk_period/2;
 
@@ -72,6 +69,7 @@ begin
     variable current_read_line	: line;
     variable current_read_field	: std_logic_vector (7 downto 0);
     --variable current_write_line : std_logic_vector (0 downto 0);
+    variable current_write_line : std_logic;
     --variable start_of_data_Reader : std_logic;
 
   begin
@@ -79,10 +77,11 @@ begin
     if rising_edge(clk) then
       readline(input, current_read_line);
       hread(current_read_line, current_read_field);
+      read(current_read_line, current_write_line);
+
 
       data_in <= current_read_field;
-      valid <= '1';
-      read_en <= '1';
+      valid <= current_write_line;
     end if;
   end process;
 

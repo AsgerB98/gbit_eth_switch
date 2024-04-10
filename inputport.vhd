@@ -11,7 +11,6 @@ entity inputport is
     reset   : in std_logic;
     data_in : in std_logic_vector (7 downto 0);
     valid   : in std_logic;
-    read_en : in std_logic;
 
     srcMac : out std_logic_vector(47 downto 0);
     dstMac : out std_logic_vector(47 downto 0);
@@ -26,7 +25,7 @@ architecture inputport_arch of inputport is
   signal full_fifo : std_logic := '0';
   signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
 
-  signal SoF  : std_logic := '1';
+  signal SoF  : std_logic := '0';
   signal counter : integer := 0;
 
   signal tempsrc : std_logic_vector (47 downto 0) := (others => '0');
@@ -60,7 +59,7 @@ architecture inputport_arch of inputport is
 begin
 
 
-  clk_proc : process (clk, counter)
+  clk_proc : process (clk, counter, valid, SoF)
   begin
 
     if reset = '1' then
@@ -68,9 +67,12 @@ begin
     elsif rising_edge(clk) then
       counter <= counter +1;
 
+      if counter = 0 then
+        SoF <= '0';
+      end if;
+
       if counter = 1 then
         tempsrc(47 downto 40) <= data_in;
-        SoF <= '0';
       end if;
       
       if counter = 2 then
@@ -95,7 +97,6 @@ begin
 
       if counter = 7 then
         tempdst(47 downto 40) <= data_in;
-        SoF <= '0';
       end if;
       
       if counter = 8 then
@@ -119,14 +120,27 @@ begin
       end if;
 
     end if;
+
+
+
+    if rising_edge(valid) then
+      counter <= 0;
+      SoF <= '1';
+    end if;
+
+
   end process;
+
+
+  
+
 
   fifo_ports : FIFOSwitch
     port map (
       clock => clk,
       data => data_in,
-      rdreq => read_en,
-      wrreq => valid,
+      rdreq => valid,
+      wrreq => '1',
       empty => empty_fifo,
       full => full_fifo,
       q => data_out,
@@ -134,21 +148,14 @@ begin
     );
 
 
-fcs_ports : FCS
-  port map (
-    clk  =>clk,
-    reset  =>reset,
-    start_of_frame  => SoF, 
-    data_in  => data_in,
-    fcs_error => FCS_error
-  );
+  fcs_ports : FCS
+    port map (
+      clk  =>clk,
+      reset  =>reset,
+      start_of_frame  => SoF, 
+      data_in  => data_in,
+      fcs_error => FCS_error
+    );
 
-
-  -- logic : process (SoF)
-  -- begin
-  --   if SoF = '1' then
-  --     SoF <= '0';
-  --   end if;
-  -- end process;
 
 end architecture;
