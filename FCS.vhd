@@ -16,7 +16,7 @@ end FCS;
 
 architecture FCS_arch of FCS is
     constant POLYNOMIUM : std_logic_vector(32 downto 0) := "100000100110000010001110110110111"; -- G(x)
-    signal count : integer range -1 to 32 := -1;
+    signal count : integer range -1 to 32 := 0;
     signal R : std_logic_vector(31 downto 0) := "00000000000000000000000000000000";    
     
 begin
@@ -24,29 +24,32 @@ begin
   process(clk, start_of_frame, count, reset)
     begin
 
-    if rising_edge(clk) then
+    if reset = '1' then
+      count <= 0;
+
+    elsif rising_edge(clk) then
       if count < 4 then
         count <= count + 1;
       end if;
 
       if (count < 4 or start_of_frame = '1') then 
-        R(0) <= not data_in(7) xor R(24) xor R(30); --g0
-        R(1) <= not data_in(6) xor R(24) xor R(25) xor R(30) xor R(31);
-        R(2) <= not data_in(5) xor R(24) xor R(25) xor R(26) xor R(30) xor R(31);
-        R(3) <= not data_in(4) xor R(25) xor R(26) xor R(27) xor R(31);
-        R(4) <= not data_in(3) xor R(24) xor R(26) xor R(27) xor R(28) xor R(30);
-        R(5) <= not data_in(2) xor R(24) xor R(25) xor R(27) xor R(28) xor R(29) xor R(30) xor R(31);
-        R(6) <= not data_in(1) xor R(25) xor R(26) xor R(28) xor R(29) xor R(30) xor R(31);
-        R(7) <= not data_in(0) xor R(24) xor R(26) xor R(27) xor R(29) xor R(31);
+        R(0) <= not data_in(0) xor R(24) xor R(30); --g0
+        R(1) <= not data_in(1) xor R(24) xor R(25) xor R(30) xor R(31);
+        R(2) <= not data_in(2) xor R(24) xor R(25) xor R(26) xor R(30) xor R(31);
+        R(3) <= not data_in(3) xor R(25) xor R(26) xor R(27) xor R(31);
+        R(4) <= not data_in(4) xor R(24) xor R(26) xor R(27) xor R(28) xor R(30);
+        R(5) <= not data_in(5) xor R(24) xor R(25) xor R(27) xor R(28) xor R(29) xor R(30) xor R(31);
+        R(6) <= not data_in(6) xor R(25) xor R(26) xor R(28) xor R(29) xor R(30) xor R(31);
+        R(7) <= not data_in(7) xor R(24) xor R(26) xor R(27) xor R(29) xor R(31);
       else
-        R(0) <= data_in(7) xor R(24) xor R(30); --g0
-        R(1) <= data_in(6) xor R(24) xor R(25) xor R(30) xor R(31);
-        R(2) <= data_in(5) xor R(24) xor R(25) xor R(26) xor R(30) xor R(31);
-        R(3) <= data_in(4) xor R(25) xor R(26) xor R(27) xor R(31);
-        R(4) <= data_in(3) xor R(24) xor R(26) xor R(27) xor R(28) xor R(30);
-        R(5) <= data_in(2) xor R(24) xor R(25) xor R(27) xor R(28) xor R(29) xor R(30) xor R(31);
-        R(6) <= data_in(1) xor R(25) xor R(26) xor R(28) xor R(29) xor R(30) xor R(31);
-        R(7) <= data_in(0) xor R(24) xor R(26) xor R(27) xor R(29) xor R(31);
+        R(0) <= data_in(0) xor R(24) xor R(30); --g0
+        R(1) <= data_in(1) xor R(24) xor R(25) xor R(30) xor R(31);
+        R(2) <= data_in(2) xor R(24) xor R(25) xor R(26) xor R(30) xor R(31);
+        R(3) <= data_in(3) xor R(25) xor R(26) xor R(27) xor R(31);
+        R(4) <= data_in(4) xor R(24) xor R(26) xor R(27) xor R(28) xor R(30);
+        R(5) <= data_in(5) xor R(24) xor R(25) xor R(27) xor R(28) xor R(29) xor R(30) xor R(31);
+        R(6) <= data_in(6) xor R(25) xor R(26) xor R(28) xor R(29) xor R(30) xor R(31);
+        R(7) <= data_in(7) xor R(24) xor R(26) xor R(27) xor R(29) xor R(31);
       end if; 
 
 

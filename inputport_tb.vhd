@@ -14,7 +14,7 @@ architecture bench of inputport_tb is
   constant clk_period : time := 5 ns;
 
   signal clk : std_logic;
-  signal reset : std_logic;
+  signal reset : std_logic := '1';
   signal data_in : std_logic_vector (7 downto 0);
   signal valid : std_logic;
   signal read_en : std_logic;
@@ -54,17 +54,25 @@ begin
 
   clk_process : process
   begin
-    clk <= '0'; wait for clk_period/2;
+    --read_en <= '1';
     clk <= '1'; wait for clk_period/2;
+    clk <= '0'; wait for clk_period/2;
+
   end process clk_process;
+
+  rst : process
+  begin
+    wait for clk_period;
+    reset <= '0';
+  end process;
 
   reading_proc : process (clk)
     file input : TEXT open READ_MODE is "Input_packet.txt"; 
     
     variable current_read_line	: line;
     variable current_read_field	: std_logic_vector (7 downto 0);
-    variable current_write_line : std_logic_vector (0 downto 0);
-    variable start_of_data_Reader : std_logic;
+    --variable current_write_line : std_logic_vector (0 downto 0);
+    --variable start_of_data_Reader : std_logic;
 
   begin
 
@@ -73,12 +81,16 @@ begin
       hread(current_read_line, current_read_field);
 
       data_in <= current_read_field;
+      valid <= '1';
+      read_en <= '1';
     end if;
   end process;
 
   -- start : process
   -- begin
-    
+  --   --valid <= '0';
+  --   wait for 10 ns;
+  --   valid <= '1';    
   -- end process;
 
 end;

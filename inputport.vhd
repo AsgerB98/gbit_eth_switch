@@ -28,6 +28,9 @@ architecture inputport_arch of inputport is
 
   signal SoF  : std_logic := '1';
   signal counter : integer := 0;
+
+  signal tempsrc : std_logic_vector (47 downto 0) := (others => '0');
+  signal tempdst : std_logic_vector (47 downto 0) := (others => '0');
   
   
   component FIFOSwitch is
@@ -42,7 +45,7 @@ architecture inputport_arch of inputport is
       usedw		: OUT STD_LOGIC_VECTOR (10 DOWNTO 0)
     );
   end component;
-
+  
   component FCS is
     port (
       clk : in std_logic;
@@ -52,8 +55,71 @@ architecture inputport_arch of inputport is
       fcs_error : out std_logic
     );
   end component;
-
+  
+  
 begin
+
+
+  clk_proc : process (clk, counter)
+  begin
+
+    if reset = '1' then
+
+    elsif rising_edge(clk) then
+      counter <= counter +1;
+
+      if counter = 1 then
+        tempsrc(47 downto 40) <= data_in;
+        SoF <= '0';
+      end if;
+      
+      if counter = 2 then
+        tempsrc(39 downto 32) <= data_in;
+      end if;
+      
+      if counter = 3 then
+        tempsrc(31 downto 24) <= data_in;
+      end if;
+      if counter = 4 then
+        tempsrc(23 downto 16) <= data_in;
+      end if;
+      if counter = 5 then
+        tempsrc(15 downto 8) <= data_in;
+      end if;
+
+      if counter = 6 then
+        --tempsrc(7 downto 0) <= data_in;
+        srcMac(47 downto 8) <= tempsrc(47 downto 8);
+        srcMac(7 downto 0) <= data_in;
+      end if;
+
+      if counter = 7 then
+        tempdst(47 downto 40) <= data_in;
+        SoF <= '0';
+      end if;
+      
+      if counter = 8 then
+        tempdst(39 downto 32) <= data_in;
+      end if;
+      
+      if counter = 9 then
+        tempdst(31 downto 24) <= data_in;
+      end if;
+      if counter = 10 then
+        tempdst(23 downto 16) <= data_in;
+      end if;
+      if counter = 11 then
+        tempdst(15 downto 8) <= data_in;
+      end if;
+
+      if counter = 12 then
+        --tempdst(7 downto 0) <= data_in;
+        dstMac(47 downto 8) <= tempdst(47 downto 8);
+        dstMac(7 downto 0) <= data_in;
+      end if;
+
+    end if;
+  end process;
 
   fifo_ports : FIFOSwitch
     port map (
@@ -66,6 +132,7 @@ begin
       q => data_out,
       usedw => status_fifo
     );
+
 
 fcs_ports : FCS
   port map (
@@ -83,17 +150,5 @@ fcs_ports : FCS
   --     SoF <= '0';
   --   end if;
   -- end process;
-
-  clk_proc : process (clk, counter)
-  begin
-    if rising_edge(clk) then
-      counter <= counter +1;
-    end if;
-
-    if counter = 2 then
-      SoF <= '0';
-    end if;
-  end process;
-    
 
 end architecture;

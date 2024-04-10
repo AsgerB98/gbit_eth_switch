@@ -105,7 +105,7 @@ BEGIN
 		lpm_width => 8,
 		lpm_widthu => 11,
 		overflow_checking => "OFF",
-		underflow_checking => "OFF",
+		underflow_checking => "ON",
 		use_eab => "ON"
 	)
 	PORT MAP (
