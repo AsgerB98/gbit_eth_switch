@@ -33,11 +33,9 @@ architecture mac_learner_arch of mac_learner is
   
   type state_type is (idle, insert_key, lookup_key, answer, conclude);
     
-  signal current_state, next_state : state_type;
-  
-  
-  
+  signal current_state, next_state : state_type;  
 
+  
   component ram is
     port (
       clk     : in std_logic;

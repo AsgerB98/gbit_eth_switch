@@ -20,7 +20,7 @@ architecture bench of inputport_tb is
 
   signal srcMac : std_logic_vector(47 downto 0);
   signal dstMac : std_logic_vector(47 downto 0);
-  signal FCS_error : std_logic;
+  signal fcs_error_IP : std_logic;
   signal data_out : std_logic_vector (7 downto 0);
 
   component inputport is
@@ -32,7 +32,7 @@ architecture bench of inputport_tb is
 
       srcMac : out std_logic_vector(47 downto 0);
       dstMac : out std_logic_vector(47 downto 0);
-      FCS_error : out std_logic;
+      fcs_error_IP : out std_logic;
       data_out: out std_logic_vector (7 downto 0)
     );
   end component;
@@ -46,7 +46,7 @@ begin
       valid => valid,
       srcMac => srcMac,
       dstMac => dstMac,
-      FCS_error => FCS_error,
+      fcs_error_IP => fcs_error_IP,
       data_out => data_out
     );
 

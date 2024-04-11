@@ -13,7 +13,7 @@ entity inputport is
 
     srcMac : out std_logic_vector(47 downto 0);
     dstMac : out std_logic_vector(47 downto 0);
-    FCS_error : out std_logic;
+    fcs_error_IP : out std_logic;
     data_out: out std_logic_vector (7 downto 0)
   );
 end entity;
@@ -131,9 +131,6 @@ begin
   end process;
 
 
-  
-
-
   fifo_ports : FIFOSwitch
     port map (
       clock => clk,
@@ -146,14 +143,13 @@ begin
       usedw => status_fifo
     );
 
-
   fcs_ports : FCS
     port map (
       clk  =>clk,
       reset  =>reset,
       start_of_frame  => SoF, 
       data_in  => data_in,
-      fcs_error => FCS_error
+      fcs_error => fcs_error_IP
     );
 
 
