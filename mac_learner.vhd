@@ -127,6 +127,8 @@ begin
   output_logic : process (current_state, memory)
   begin
     case current_state is
+      when idle =>
+        sel <= "0000";
       when insert_key =>
       SMACport <= sMAC & portnum;
       address <= hash_src(sMAC, g);

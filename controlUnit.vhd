@@ -21,7 +21,8 @@ entity controlUnit is
     -- valid3  : in std_logic;
     -- valid4  : in std_logic;
 
-    port_sel : in std_logic_vector (3 downto 0);
+    port_sel : in std_logic_vector (3 downto 0); --??
+    port_sel_out : out std_logic_vector (3 downto 0); --??
         
     dst_mac : out std_logic_vector (47 downto 0);
     src_mac : out std_logic_vector (47 downto 0);
@@ -92,7 +93,7 @@ architecture controlUnit_arch of controlUnit is
   signal current_state, next_state : State_type;
   
   --signal round_robin : std_logic_vector(1 downto 0) := (others => '0');
-  signal round_robin : integer := 0;
+  signal round_robin, round_robin_next : integer := 1;
 
   
 begin
@@ -103,11 +104,13 @@ begin
       current_state <= idle;
     elsif rising_edge(clk) then
       current_state <= next_state;
+      round_robin <= round_robin_next;
+      --port_sel <= port_sel_temp;
     end if;
   end process;
  
 
-  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, port_sel_temp)
+  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, port_sel_temp, round_robin_next)
   begin
     next_state <= current_state;
 
@@ -121,14 +124,14 @@ begin
           next_state <= wait_answer;
 
           
-        -- when wait_answer =>
+        when wait_answer =>
           
-        -- if port_sel_temp /= "0000" then
-        --   if round_robin = "01" then
-        --     next_state <= port2;
-        --   end if;
+        if port_sel_temp /= "0000" then
+          if round_robin_next = 2 then
+            next_state <= port2;
+          end if;
           
-        -- end if;
+        end if;
         
     
       when others =>
@@ -138,8 +141,12 @@ begin
   
   OUTPUT_LOGIC : process (current_state, round_robin)
   begin
+    round_robin_next <= round_robin;
     
     case current_state is
+      when idle =>
+        --port_sel_temp <= "0000";
+
       when port1 =>
       dst_mac <= dst_mac_addr1;
       src_mac <= src_mac_addr1;
@@ -150,7 +157,7 @@ begin
       inc_port <= "001";
       mac_inc_temp <= '1';
 
-      --round_robin <= round_robin +1;
+      round_robin_next <= round_robin +1;
 
       when wait_answer =>
         mac_inc_temp <= '0';

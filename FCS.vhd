@@ -17,11 +17,13 @@ end FCS;
 architecture FCS_arch of FCS is
     constant POLYNOMIUM : std_logic_vector(32 downto 0) := "100000100110000010001110110110111"; -- G(x)
     signal count : integer range -1 to 32 := 0;
-    signal R : std_logic_vector(31 downto 0) := "00000000000000000000000000000000";    
+    signal R : std_logic_vector(31 downto 0) := "00000000000000000000000000000000";
+    signal start_prog : std_logic := '0';
+    
     
 begin
 
-  process(clk, start_of_frame, count, reset)
+  process(clk, start_of_frame, count, reset, start_prog)
     begin
 
     if reset = '1' then
@@ -32,7 +34,7 @@ begin
         count <= count + 1;
       end if;
 
-      if (count < 4 or start_of_frame = '1') then 
+      if ((count < 4 or start_of_frame = '1')) then 
         R(0) <= not data_in(0) xor R(24) xor R(30); --g0
         R(1) <= not data_in(1) xor R(24) xor R(25) xor R(30) xor R(31);
         R(2) <= not data_in(2) xor R(24) xor R(25) xor R(26) xor R(30) xor R(31);
@@ -83,24 +85,29 @@ begin
     --     fcs_error <= '0';
     --     count <= 1;
     -- end if;
+    if start_prog = '1' then
     if  R /= X"FFFFFFFF" then -- CHANGE HERE HOW U WANT FCS_ERROR
       fcs_error <= '1';
       elsif R=X"FFFFFFFF" then
-        fcs_error <= '0';
-        count <= 1;
+          
+          fcs_error <= '0';
+          count <= 1;
+        --else
+        end if;
     end if;
 
       if start_of_frame = '1' then
         R <= (others => '0');
-        R(0) <= not data_in(7);
-        R(1) <= not data_in(6);
-        R(2) <= not data_in(5);
-        R(3) <= not data_in(4);
-        R(4) <= not data_in(3);
-        R(5) <= not data_in(2);
-        R(6) <= not data_in(1);
-        R(7) <= not data_in(0);
+        R(0) <= not data_in(0);
+        R(1) <= not data_in(1);
+        R(2) <= not data_in(2);
+        R(3) <= not data_in(3);
+        R(4) <= not data_in(4);
+        R(5) <= not data_in(5);
+        R(6) <= not data_in(6);
+        R(7) <= not data_in(7);
         count <= 1;
+        start_prog <= '1';
       end if;
 
     end if;
