@@ -14,10 +14,10 @@ entity inputport is
     srcMac : out std_logic_vector(47 downto 0);
     dstMac : out std_logic_vector(47 downto 0);
     fcs_error_IP : out std_logic;
+    packet_size  : out integer;
     data_out: out std_logic_vector (7 downto 0)
   );
 end entity;
-
 
 architecture inputport_arch of inputport is
   signal empty_fifo : std_logic := '0';
@@ -30,15 +30,19 @@ architecture inputport_arch of inputport is
   signal tempsrc : std_logic_vector (47 downto 0) := (others => '0');
   signal tempdst : std_logic_vector (47 downto 0) := (others => '0');
 
-
   signal send_data : std_logic := '0';
+  signal started : std_logic := '0';
   signal numbytes : integer := 0;
   signal fcs_errors : std_logic;
+  signal wait_3 : integer := 0;
+  signal curr_byte : integer := 0;
+  signal legit_packet : std_logic := '0';
+
+  signal delay_sig_pre, delay_sig_after : std_logic := '0';
   
+
   
-  
-  
-  
+    
   component FIFOSwitch is
     port (
       clock		: IN STD_LOGIC ;
@@ -62,17 +66,16 @@ architecture inputport_arch of inputport is
     );
   end component;
   
-  
 begin
-
-
-  clk_proc : process (clk, counter, valid, SoF)
+  clk_proc : process (clk, counter, valid, SoF, wait_3, send_data)
   begin
-
     if reset = '1' then
 
     elsif rising_edge(clk) then
-      counter <= counter +1;
+      if valid = '1' then
+        counter <= counter +1;
+        started <= '1';
+      end if;
 
       case counter is
         when 0 => SoF <= '0';
@@ -94,8 +97,39 @@ begin
           null;
       end case;
 
-      if fcs_error = '1' then
+      if curr_byte <= numbytes and legit_packet = '1' then
+        curr_byte <= curr_byte +1;
+        if curr_byte = numbytes then
+          send_data <= '0';
+          delay_sig_pre <= '1';
+          curr_byte <= 0;
+          legit_packet <= '0';
+        end if;
+      end if;
+      if delay_sig_pre = '1' then
+      end if;
+      if valid = '0' and started = '1' then
         numbytes <= counter -2;
+        packet_size <= counter;
+        wait_3 <= wait_3 +1;
+      end if;
+      
+      if wait_3 >= 1 then
+        wait_3 <= wait_3 +1;
+      end if;
+      
+      if wait_3 = 3 then
+        wait_3 <= 0;
+        send_data <= '1';
+        delay_sig_after <= '1';
+      end if;
+      if delay_sig_after = '1' then
+        delay_sig_after <= '0';
+      end if;
+      
+      if delay_sig_after = '1' then
+        legit_packet <= '1';
+        
       end if;
 
     end if;
@@ -113,7 +147,7 @@ begin
     port map (
       clock => clk,
       data => data_in,
-      rdreq => valid,
+      rdreq => send_data,
       wrreq => valid,
       empty => empty_fifo,
       full => full_fifo,

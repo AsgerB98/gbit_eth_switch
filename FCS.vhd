@@ -20,7 +20,6 @@ architecture FCS_arch of FCS is
     signal R : std_logic_vector(31 downto 0) := "00000000000000000000000000000000";
     signal start_prog : std_logic := '0';
     
-    
 begin
 
   process(clk, start_of_frame, count, reset, start_prog)
