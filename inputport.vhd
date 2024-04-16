@@ -106,8 +106,7 @@ begin
           legit_packet <= '0';
         end if;
       end if;
-      if delay_sig_pre = '1' then
-      end if;
+
       if valid = '0' and started = '1' then
         numbytes <= counter -2;
         packet_size <= counter;

@@ -19,18 +19,18 @@ architecture bench of controlUnit_tb is
   signal clk : std_logic;
   signal reset : std_logic;
   signal inport1 : std_logic_vector (7 downto 0);
-  --signal inport2 : std_logic_vector (7 downto 0);
+  signal inport2 : std_logic_vector (7 downto 0);
   -- signal inport3 : std_logic_vector (7 downto 0);
   -- signal inport4 : std_logic_vector (7 downto 0);
   signal valid1 : std_logic;
-  --signal valid2 : std_logic;
+  signal valid2 : std_logic;
   -- signal valid3 : std_logic;
   -- signal valid4 : std_logic;
   signal port_sel : std_logic_vector (3 downto 0);
   signal dst_mac : std_logic_vector (47 downto 0);
   signal src_mac : std_logic_vector (47 downto 0);
   signal data_out1 : std_logic_vector (7 downto 0);
-  --signal data_out2 : std_logic_vector (7 downto 0);
+  signal data_out2 : std_logic_vector (7 downto 0);
   -- signal data_out3 : std_logic_vector (7 downto 0);
   -- signal data_out4 : std_logic_vector (7 downto 0);
 
@@ -40,12 +40,12 @@ architecture bench of controlUnit_tb is
     reset : in std_logic;
         
     inport1 : in std_logic_vector (7 downto 0);
-    --inport2 : in std_logic_vector (7 downto 0);
+    inport2 : in std_logic_vector (7 downto 0);
     -- inport3 : in std_logic_vector (7 downto 0);
     -- inport4 : in std_logic_vector (7 downto 0);
 
     valid1  : in std_logic;
-    --valid2  : in std_logic;
+    valid2  : in std_logic;
     -- valid3  : in std_logic;
     -- valid4  : in std_logic;
 
@@ -54,8 +54,8 @@ architecture bench of controlUnit_tb is
     dst_mac : out std_logic_vector (47 downto 0);
     src_mac : out std_logic_vector (47 downto 0);
 
-    data_out1 : out std_logic_vector (7 downto 0)
-    --data_out2 : out std_logic_vector (7 downto 0)
+    data_out1 : out std_logic_vector (7 downto 0);
+    data_out2 : out std_logic_vector (7 downto 0)
     -- data_out3 : out std_logic_vector (7 downto 0);
     -- data_out4 : out std_logic_vector (7 downto 0)
         
@@ -69,18 +69,18 @@ begin
     clk => clk,
     reset => reset,
     inport1 => inport1,
-    --inport2 => inport2,
+    inport2 => inport2,
     -- inport3 => inport3,
     -- inport4 => inport4,
     valid1 => valid1,
-    --valid2 => valid2,
+    valid2 => valid2,
     -- valid3 => valid3,
     -- valid4 => valid4,
     port_sel => port_sel,
     dst_mac => dst_mac,
     src_mac => src_mac,
-    data_out1 => data_out1
-    --data_out2 => data_out2
+    data_out1 => data_out1,
+    data_out2 => data_out2
     -- data_out3 => data_out3,
     -- data_out4 => data_out4
   );
@@ -107,8 +107,8 @@ begin
     inport1 <= current_read_field;
     valid1 <= current_write_line;
 
-    -- inport2 <= current_read_field;
-    -- valid2 <= current_write_line;
+    inport2 <= current_read_field;
+    valid2 <= current_write_line;
 
     -- inport3 <= current_read_field;
     -- valid3 <= current_write_line;

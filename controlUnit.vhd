@@ -12,12 +12,12 @@ entity controlUnit is
     reset : in std_logic;
         
     inport1 : in std_logic_vector (7 downto 0);
-    --inport2 : in std_logic_vector (7 downto 0);
+    inport2 : in std_logic_vector (7 downto 0);
     -- inport3 : in std_logic_vector (7 downto 0);
     -- inport4 : in std_logic_vector (7 downto 0);
 
     valid1  : in std_logic;
-    --valid2  : in std_logic;
+    valid2  : in std_logic;
     -- valid3  : in std_logic;
     -- valid4  : in std_logic;
 
@@ -27,8 +27,8 @@ entity controlUnit is
     dst_mac : out std_logic_vector (47 downto 0);
     src_mac : out std_logic_vector (47 downto 0);
 
-    data_out1 : out std_logic_vector (7 downto 0)
-    --data_out2 : out std_logic_vector (7 downto 0)
+    data_out1 : out std_logic_vector (7 downto 0);
+    data_out2 : out std_logic_vector (7 downto 0)
     -- data_out3 : out std_logic_vector (7 downto 0);
     -- data_out4 : out std_logic_vector (7 downto 0)
         
@@ -86,21 +86,22 @@ architecture controlUnit_arch of controlUnit is
 
   signal mac_inc_temp : std_logic;
   signal port_sel_temp : std_logic_vector (3 downto 0) := (others => '0');
-  signal size_of_packet : integer;
-  signal legit_packet : std_logic := '0';
-  signal sending_packet : integer := 0;
-  
-  
+  signal size_of_packet1, size_of_packet2 : integer;
+  signal legit_packet1, legit_packet2 : std_logic := '0';
+  signal sending_packet1, sending_packet2 : integer := 0;
+  signal good_fcs1, good_fcs2 : std_logic := '0';
   
 
-  type State_type is (idle, port1, port2, wait_answer);
+  type State_type is (idle, port1, port2, port3, port4, wait_answer);
   signal current_state, next_state : State_type;
   
   --signal round_robin : std_logic_vector(1 downto 0) := (others => '0');
   signal round_robin, round_robin_next : integer := 1;
 
-  signal data_out_CU_fcs1 : std_logic_vector(7 downto 0) := (others => '0');
-  signal wait_3_clock : integer := 0;
+  signal data_out_CU_fcs1, data_out_CU_fcs2 : std_logic_vector(7 downto 0) := (others => '0');
+  signal wait_3_clock1, wait_3_clock2 : integer := 0;
+
+  signal prog_start1, prog_start2, prog_start3, prog_start4 : std_logic := '0';
   
   
 begin
@@ -112,51 +113,115 @@ begin
     elsif rising_edge(clk) then
       current_state <= next_state;
       round_robin <= round_robin_next;
+      if valid1 = '1' then
+        prog_start1 <= '1';
+      end if;
+      if valid2 = '1' then
+        prog_start2 <= '1';
+      end if;
+      -- if valid3 = '1' then
+      --   prog_start3 = '1';
+      -- end if;
+      -- if valid4 = '1' then
+      --   prog_st art4 = '1';
+      -- end if;
+      
       --port_sel <= port_sel_temp;
       -- if legit_packet = '1' then
-         if sending_packet <= size_of_packet and legit_packet = '1' then
-           data_out1 <= data_out_CU_fcs1;
-           sending_packet <= sending_packet +1;
-           if sending_packet = size_of_packet then
-            legit_packet <= '0';
-            sending_packet <= 0;
+         if sending_packet1 <= size_of_packet1 and legit_packet1 = '1' then
+             if good_fcs1 = '1' then
+                data_out1 <= data_out_CU_fcs1;
+             end if;
+           sending_packet1 <= sending_packet1 +1;
+           if sending_packet1 = size_of_packet1 then
+            good_fcs1 <= '0';
+            legit_packet1 <= '0';
+            sending_packet1 <= 0;
            end if;
          end if;
 
          if FCS_error_CU1 = '0' then
-          wait_3_clock <= wait_3_clock +1;
+          wait_3_clock1 <= wait_3_clock1 +1;
+          good_fcs1 <= '1';
         end if;
-        if wait_3_clock >= 1 then
-          wait_3_clock <= wait_3_clock +1;
+        if wait_3_clock1 >= 1 then
+          wait_3_clock1 <= wait_3_clock1 +1;
         end if;
-        if wait_3_clock = 3 then
-          legit_packet <= '1';
-          wait_3_clock <= 0;
+        if wait_3_clock1 = 3 then
+          legit_packet1 <= '1';
+          wait_3_clock1 <= 0;
         end if;
+
+
+
+        if sending_packet2 <= size_of_packet2 and legit_packet2 = '1' then
+          if good_fcs2 = '1' then
+             data_out2 <= data_out_CU_fcs2;
+          end if;
+        sending_packet2 <= sending_packet2 +1;
+        if sending_packet2 = size_of_packet2 then
+         good_fcs2 <= '0';
+         legit_packet2 <= '0';
+         sending_packet2 <= 0;
+        end if;
+      end if;
+
+      if FCS_error_CU2 = '0' then
+       wait_3_clock2 <= wait_3_clock2 +1;
+       good_fcs2 <= '1';
+     end if;
+     if wait_3_clock2 >= 1 then
+       wait_3_clock2 <= wait_3_clock2 +1;
+     end if;
+     if wait_3_clock2 = 3 then
+       legit_packet2 <= '1';
+       wait_3_clock2 <= 0;
+     end if;
+
 
       -- end if;
     end if;
   end process;
 
-  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, port_sel_temp, round_robin_next)
+  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, port_sel_temp, round_robin_next, valid1, prog_start1, prog_start2)
   begin
     next_state <= current_state;
 
     case current_state is
       when idle =>
-      if FCS_error_CU1 = '0' then
-        next_state <= port1;
-      end if;
+
+      next_state <= port1;
 
         when port1 =>
+
+        if valid1 = '0' and prog_start1 = '1' and FCS_error_CU1 = '0' then
           next_state <= wait_answer;
+          -- round_robin_next <= 1;
+        else
+          next_state <= port2;
+        end if;
           
         when wait_answer =>
+
         if port_sel_temp /= "0000" then
-          if round_robin_next = 2 then
+          if round_robin_next = 1 then
             next_state <= port2;
+          elsif round_robin_next = 2 then
+            next_state <= port1;
+          elsif round_robin_next = 3 then
+            next_state <= port4;
+          elsif round_robin_next = 4 then
+            next_state <= port1;
           end if;
           
+        end if;
+
+        when port2 =>
+        if valid2 = '0' and prog_start2 = '1' and FCS_error_CU2 = '0' then
+          next_state <= wait_answer;
+          -- round_robin_next <= 3;
+        else
+          next_state <= port1;
         end if;
     
       when others =>
@@ -164,7 +229,7 @@ begin
     end case;
   end process;
   
-  OUTPUT_LOGIC : process (current_state, round_robin)
+  OUTPUT_LOGIC : process (current_state, round_robin, mac_inc_temp, FCS_error_CU1)
   begin
     round_robin_next <= round_robin;
     
@@ -180,15 +245,28 @@ begin
       src_mac_addr <= src_mac_addr1;
 
       inc_port <= "001";
-      mac_inc_temp <= '1';
+      if FCS_error_CU1 = '0' then
+        mac_inc_temp <= '1';
+      end if;
 
-      round_robin_next <= round_robin +1;
+      round_robin_next <= 1;
 
       when wait_answer =>
         mac_inc_temp <= '0';
 
       when port2 =>
-        port_sel_out <= port_sel_temp;
+        --port_sel_out <= port_sel_temp;
+        dst_mac <= dst_mac_addr2;
+        src_mac <= src_mac_addr2;
+  
+        dst_mac_addr <= dst_mac_addr2;
+        src_mac_addr <= src_mac_addr2;
+  
+        inc_port <= "010";
+        if FCS_error_CU2 = '0' then
+          mac_inc_temp <= '1';
+        end if;  
+        round_robin_next <= 2;
     
       when others =>
         null;
@@ -218,22 +296,23 @@ begin
         dstMac => dst_mac_addr1,
         fcs_error_IP => FCS_error_CU1,
         --data_out => data_out1
-        packet_size => size_of_packet,
+        packet_size => size_of_packet1,
         data_out => data_out_CU_fcs1
     );
     
-    -- input_port2 : inputport
-    -- port map (
-    --   clk  => clk,  
-    --   reset  => reset,
-    --   data_in => inport2,
-    --   valid => valid2,
+    input_port2 : inputport
+    port map (
+      clk  => clk,  
+      reset  => reset,
+      data_in => inport2,
+      valid => valid2,
   
-    --   srcMac => src_mac_addr2,
-    --   dstMac => dst_mac_addr2,
-    --   fcs_error_IP => FCS_error_CU2,
-    --   data_out => data_out2
-    -- );
+      srcMac => src_mac_addr2,
+      dstMac => dst_mac_addr2,
+      packet_size => size_of_packet2,
+      fcs_error_IP => FCS_error_CU2,
+      data_out => data_out_CU_fcs2
+    );
     
     -- input_port3 : inputport
     -- port map (
@@ -244,6 +323,7 @@ begin
   
     --   srcMac => src_mac_addr3,
     --   dstMac => dst_mac_addr3,
+    --   packet_size => size_of_packet3,
     --   fcs_error_IP => FCS_error_CU,
     --   data_out => data_out3
     
@@ -258,6 +338,7 @@ begin
   
     --   srcMac => src_mac_addr4,
     --   dstMac => dst_mac_addr4,
+    --   packet_size => size_of_packet4,
     --   fcs_error_IP => FCS_error_CU,
     --   data_out => data_out4
 
