@@ -14,13 +14,13 @@ entity controlUnit is
         
     inport1 : in std_logic_vector (7 downto 0);
     inport2 : in std_logic_vector (7 downto 0);
-    -- inport3 : in std_logic_vector (7 downto 0);
-    -- inport4 : in std_logic_vector (7 downto 0);
+    inport3 : in std_logic_vector (7 downto 0);
+    inport4 : in std_logic_vector (7 downto 0);
 
     valid1  : in std_logic;
     valid2  : in std_logic;
-    -- valid3  : in std_logic;
-    -- valid4  : in std_logic;
+    valid3  : in std_logic;
+    valid4  : in std_logic;
 
     port_sel : in std_logic_vector (3 downto 0); --??
 
@@ -34,9 +34,9 @@ entity controlUnit is
     src_mac : out std_logic_vector (47 downto 0);
 
     data_out1 : out std_logic_vector (7 downto 0);
-    data_out2 : out std_logic_vector (7 downto 0)
-    -- data_out3 : out std_logic_vector (7 downto 0);
-    -- data_out4 : out std_logic_vector (7 downto 0)
+    data_out2 : out std_logic_vector (7 downto 0);
+    data_out3 : out std_logic_vector (7 downto 0);
+    data_out4 : out std_logic_vector (7 downto 0)
         
     );
 end entity;
@@ -98,7 +98,7 @@ architecture controlUnit_arch of controlUnit is
   --signal round_robin : std_logic_vector(1 downto 0) := (others => '0');
   signal round_robin, round_robin_next : integer := 1;
 
-  signal data_out_CU_fcs1, data_out_CU_fcs2 : std_logic_vector(7 downto 0) := (others => '0');
+  signal data_out_CU_fcs1, data_out_CU_fcs2, data_out_CU_fcs3, data_out_CU_fcs4 : std_logic_vector(7 downto 0) := (others => '0');
 
   signal prog_start1, prog_start2, prog_start3, prog_start4 : std_logic := '0';
   signal delayclock1, delayclock2, delayclock3, delayclock4 : integer := 0;
@@ -117,6 +117,12 @@ begin
       if valid2 = '1' then
         prog_start2 <= '1';
       end if;
+      if valid3 = '1' then
+        prog_start3 <= '1';
+      end if;
+      if valid4 = '1' then
+        prog_start4 <= '1';
+      end if;
 
       if send_pkt1_next = '1' then
         send1 <= '1';
@@ -132,8 +138,8 @@ begin
 
       if send1 = '1' or send_pkt1_next = '1' then
         if sending_packet1 <= size_of_packet1 and delayclock1 = 2 then
-            data_out1 <= data_out_CU_fcs1;
-            sending_packet1 <= sending_packet1 +1;
+          data_out1 <= data_out_CU_fcs1;
+          sending_packet1 <= sending_packet1 +1;
           if sending_packet1 = size_of_packet1 -1 then
             send_pkt1 <= '0';
             sending_packet1 <= 0;
@@ -156,21 +162,74 @@ begin
       end if;
 
       if send2 = '1' or send_pkt2_next = '1' then
-          if sending_packet2 <= size_of_packet2 and delayclock2 =2 then
-              data_out2 <= data_out_CU_fcs2;
-              sending_packet2 <= sending_packet2 +1;
-            if sending_packet2 = size_of_packet2 -1 then
-              send_pkt2 <= '0';
-              sending_packet2 <= 0;
-              send2 <= '0';
-              delayclock2 <= 0;
-            end if;
+        if sending_packet2 <= size_of_packet2 and delayclock2 =2 then
+          data_out2 <= data_out_CU_fcs2;
+          sending_packet2 <= sending_packet2 +1;
+          if sending_packet2 = size_of_packet2 -1 then
+            send_pkt2 <= '0';
+            sending_packet2 <= 0;
+            send2 <= '0';
+            delayclock2 <= 0;
           end if;
+        end if;
+      end if;
+
+
+      if send_pkt3_next = '1' then
+        send3 <= '1';
+        delayclock3 <= delayclock3 +1;
+      end if;
+      if delayclock3 > 0 then
+        if delayclock3 = 2 then
+          delayclock3 <= 2;
+        else
+          delayclock3 <= delayclock3 +1;
+        end if;
+      end if;
+
+      if send3 = '1' or send_pkt3_next = '1' then
+        if sending_packet3 <= size_of_packet3 and delayclock3 =2 then
+          data_out3 <= data_out_CU_fcs3;
+          sending_packet3 <= sending_packet3 +1;
+          if sending_packet3 = size_of_packet3 -1 then
+            send_pkt3 <= '0';
+            sending_packet3 <= 0;
+            send3 <= '0';
+            delayclock3 <= 0;
+          end if;
+        end if;
+      end if;
+
+
+      if send_pkt4_next = '1' then
+        send4 <= '1';
+        delayclock4 <= delayclock4 +1;
+      end if;
+      if delayclock4 > 0 then
+        if delayclock4 = 2 then
+          delayclock4 <= 2;
+        else
+          delayclock4 <= delayclock4 +1;
+        end if;
+      end if;
+
+      if send4 = '1' or send_pkt4_next = '1' then
+        if sending_packet4 <= size_of_packet4 and delayclock4 =2 then
+          data_out4 <= data_out_CU_fcs4;
+          sending_packet4 <= sending_packet4 +1;
+          if sending_packet4 = size_of_packet4 -1 then
+            send_pkt4 <= '0';
+            sending_packet4 <= 0;
+            send4 <= '0';
+            delayclock4 <= 0;
+          end if;
+        end if;
       end if;
 
 
     end if;
   end process;
+
 
   NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, port_sel_temp, round_robin_next, valid1, prog_start1, prog_start2)
   begin
@@ -194,12 +253,28 @@ begin
           next_state <= port3;
         end if;
 
+        when port3 =>
+        if valid3 = '0' and prog_start3 = '1' and FCS_error_CU3 = '0' then
+          next_state <= wait_answer;
+          -- round_robin_next <= 3;
+        else
+          next_state <= port4;
+        end if;
+
+        when port4 =>
+        if valid4 = '0' and prog_start4 = '1' and FCS_error_CU4 = '0' then
+          next_state <= wait_answer;
+          -- round_robin_next <= 3;
+        else
+          next_state <= port1;
+        end if;
+
         when wait_answer =>
         if port_sel_temp /= "0000" then
           if round_robin_next = 1 then
             next_state <= port2;
           elsif round_robin_next = 2 then
-            next_state <= port1;
+            next_state <= port3;
           elsif round_robin_next = 3 then
             next_state <= port4;
           elsif round_robin_next = 4 then
@@ -219,6 +294,8 @@ begin
     round_robin_next <= round_robin;
     send_pkt1_next <= send_pkt1;
     send_pkt2_next <= send_pkt2;
+    send_pkt3_next <= send_pkt3;
+    send_pkt4_next <= send_pkt4;
     
     case current_state is
       when idle =>
@@ -238,30 +315,64 @@ begin
 
       round_robin_next <= 1;
 
+      when port2 =>
+      dst_mac <= dst_mac_addr2;
+      src_mac <= src_mac_addr2;
+      
+      dst_mac_addr <= dst_mac_addr2;
+      src_mac_addr <= src_mac_addr2;
+      
+      inc_port <= "010";
+      if FCS_error_CU2 = '0' then
+        mac_inc_temp <= '1';
+      end if;  
+      round_robin_next <= 2;
+
+      when port3 =>
+      dst_mac <= dst_mac_addr3;
+      src_mac <= src_mac_addr3;
+      
+      dst_mac_addr <= dst_mac_addr3;
+      src_mac_addr <= src_mac_addr3;
+      
+      inc_port <= "011";
+      if FCS_error_CU3 = '0' then
+        mac_inc_temp <= '1';
+      end if;  
+      round_robin_next <= 3;
+
+      when port4 =>
+      dst_mac <= dst_mac_addr4;
+      src_mac <= src_mac_addr4;
+      
+      dst_mac_addr <= dst_mac_addr4;
+      src_mac_addr <= src_mac_addr4;
+      
+      inc_port <= "100";
+      if FCS_error_CU4 = '0' then
+        mac_inc_temp <= '1';
+      end if;  
+      round_robin_next <= 4;
+      
       when wait_answer =>
-        if round_robin = 2 and port_sel_temp /= "0000" then
-          send_pkt2_next <= '1';
-          port_sel_out1 <= port_sel_temp;
-        end if;
-        if round_robin = 1 and port_sel_temp /= "0000" then
-          send_pkt1_next <= '1';
-        end if;
+      if round_robin = 1 and port_sel_temp /= "0000" then
+        send_pkt1_next <= '1';
+        port_sel_out1 <= port_sel_temp;
+      end if;
+      if round_robin = 2 and port_sel_temp /= "0000" then
+        send_pkt2_next <= '1';
+        port_sel_out2 <= port_sel_temp;
+      end if;
+      if round_robin = 3 and port_sel_temp /= "0000" then
+        send_pkt3_next <= '1';
+        port_sel_out3 <= port_sel_temp;
+      end if;
+      if round_robin = 4 and port_sel_temp /= "0000" then
+        send_pkt4_next <= '1';
+        port_sel_out4 <= port_sel_temp;
+      end if;
         mac_inc_temp <= '0';
 
-      when port2 =>
-        --port_sel_out <= port_sel_temp;
-        dst_mac <= dst_mac_addr2;
-        src_mac <= src_mac_addr2;
-  
-        dst_mac_addr <= dst_mac_addr2;
-        src_mac_addr <= src_mac_addr2;
-  
-        inc_port <= "010";
-        if FCS_error_CU2 = '0' then
-          mac_inc_temp <= '1';
-        end if;  
-        round_robin_next <= 2;
-    
       when others =>
         null;
     end case;
@@ -309,37 +420,37 @@ begin
       data_out => data_out_CU_fcs2
     );
     
-    -- input_port3 : inputport
-    -- port map (
-    --   clk  => clk,  
-    --   reset  => reset,
-    --   data_in => inport3,
-    --   valid => valid3,
+    input_port3 : inputport
+    port map (
+      clk  => clk,  
+      reset  => reset,
+      data_in => inport3,
+      valid => valid3,
+      send_data => send3,
   
-    --   srcMac => src_mac_addr3,
-    --   dstMac => dst_mac_addr3,
-    --   packet_size => size_of_packet3,
-    --   fcs_error_IP => FCS_error_CU,
-    --   data_out => data_out3
+      srcMac => src_mac_addr3,
+      dstMac => dst_mac_addr3,
+      packet_size => size_of_packet3,
+      fcs_error_IP => FCS_error_CU3,
+      data_out => data_out_CU_fcs3
     
-    -- );
+    );
         
-    -- input_port4 : inputport
-    -- port map (
-    --   clk  => clk,  
-    --   reset  => reset,
-    --   data_in => inport4,
-    --   valid => valid4,
+    input_port4 : inputport
+    port map (
+      clk  => clk,  
+      reset  => reset,
+      data_in => inport4,
+      valid => valid4,
+      send_data => send4,
   
-    --   srcMac => src_mac_addr4,
-    --   dstMac => dst_mac_addr4,
-    --   packet_size => size_of_packet4,
-    --   fcs_error_IP => FCS_error_CU,
-    --   data_out => data_out4
+      srcMac => src_mac_addr4,
+      dstMac => dst_mac_addr4,
+      packet_size => size_of_packet4,
+      fcs_error_IP => FCS_error_CU4,
+      data_out => data_out_CU_fcs4
 
-    -- );
-
-    
+    );    
     
 
 end architecture;
