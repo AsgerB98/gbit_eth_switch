@@ -28,7 +28,6 @@ entity controlUnit is
     port_sel_out2 : out std_logic_vector (3 downto 0); --??
     port_sel_out3 : out std_logic_vector (3 downto 0); --??
     port_sel_out4 : out std_logic_vector (3 downto 0); --??
-
         
     dst_mac : out std_logic_vector (47 downto 0);
     src_mac : out std_logic_vector (47 downto 0);
@@ -95,7 +94,6 @@ architecture controlUnit_arch of controlUnit is
   type State_type is (idle, port1, port2, port3, port4, wait_answer);
   signal current_state, next_state : State_type;
   
-  --signal round_robin : std_logic_vector(1 downto 0) := (others => '0');
   signal round_robin, round_robin_next : integer := 1;
 
   signal data_out_CU_fcs1, data_out_CU_fcs2, data_out_CU_fcs3, data_out_CU_fcs4 : std_logic_vector(7 downto 0) := (others => '0');
@@ -200,7 +198,6 @@ begin
         end if;
       end if;
 
-
       if send_pkt4_next = '1' then
         send4 <= '1';
         delayclock4 <= delayclock4 +1;
@@ -225,11 +222,8 @@ begin
           end if;
         end if;
       end if;
-
-
     end if;
   end process;
-
   
 
   NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, port_sel_temp, round_robin_next, valid1, prog_start1, prog_start2)
@@ -300,7 +294,6 @@ begin
     case current_state is
       when idle =>
         --port_sel_temp <= "0000";
-
       when port1 =>
         dst_mac <= dst_mac_addr1;
         src_mac <= src_mac_addr1;
@@ -352,7 +345,6 @@ begin
           mac_inc_temp <= '1';
         end if;  
         round_robin_next <= 4;
-      
 
       when wait_answer =>
         mac_inc_temp <= '0';
@@ -448,6 +440,5 @@ begin
       fcs_error_IP => FCS_error_CU4,
       data_out => data_out_CU_fcs4
     );    
-    
 
 end architecture;

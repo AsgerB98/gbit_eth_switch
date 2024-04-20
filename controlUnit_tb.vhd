@@ -30,7 +30,6 @@ architecture bench of controlUnit_tb is
 
   signal port_sel : std_logic_vector (3 downto 0);
 
-
   signal port_sel_out1 : std_logic_vector (3 downto 0);
   signal port_sel_out2 : std_logic_vector (3 downto 0);
   signal port_sel_out3 : std_logic_vector (3 downto 0);
