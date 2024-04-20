@@ -230,6 +230,7 @@ begin
     end if;
   end process;
 
+  
 
   NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, port_sel_temp, round_robin_next, valid1, prog_start1, prog_start2)
   begin
@@ -282,7 +283,6 @@ begin
           end if;
           
         end if;
-
     
       when others =>
         null;
