@@ -302,81 +302,80 @@ begin
         --port_sel_temp <= "0000";
 
       when port1 =>
-      dst_mac <= dst_mac_addr1;
-      src_mac <= src_mac_addr1;
+        dst_mac <= dst_mac_addr1;
+        src_mac <= src_mac_addr1;
 
-      dst_mac_addr <= dst_mac_addr1;
-      src_mac_addr <= src_mac_addr1;
+        dst_mac_addr <= dst_mac_addr1;
+        src_mac_addr <= src_mac_addr1;
 
-      inc_port <= "001";
-      if FCS_error_CU1 = '0' then
-        mac_inc_temp <= '1';
-      end if;
-
-      round_robin_next <= 1;
+        inc_port <= "001";
+        if FCS_error_CU1 = '0' then
+          mac_inc_temp <= '1';
+        end if;
+        round_robin_next <= 1;
 
       when port2 =>
-      dst_mac <= dst_mac_addr2;
-      src_mac <= src_mac_addr2;
-      
-      dst_mac_addr <= dst_mac_addr2;
-      src_mac_addr <= src_mac_addr2;
-      
-      inc_port <= "010";
-      if FCS_error_CU2 = '0' then
-        mac_inc_temp <= '1';
-      end if;  
-      round_robin_next <= 2;
+        dst_mac <= dst_mac_addr2;
+        src_mac <= src_mac_addr2;
+        
+        dst_mac_addr <= dst_mac_addr2;
+        src_mac_addr <= src_mac_addr2;
+        
+        inc_port <= "010";
+        if FCS_error_CU2 = '0' then
+          mac_inc_temp <= '1';
+        end if;  
+        round_robin_next <= 2;
 
       when port3 =>
-      dst_mac <= dst_mac_addr3;
-      src_mac <= src_mac_addr3;
-      
-      dst_mac_addr <= dst_mac_addr3;
-      src_mac_addr <= src_mac_addr3;
-      
-      inc_port <= "011";
-      if FCS_error_CU3 = '0' then
-        mac_inc_temp <= '1';
-      end if;  
-      round_robin_next <= 3;
+        dst_mac <= dst_mac_addr3;
+        src_mac <= src_mac_addr3;
+        
+        dst_mac_addr <= dst_mac_addr3;
+        src_mac_addr <= src_mac_addr3;
+        
+        inc_port <= "011";
+        if FCS_error_CU3 = '0' then
+          mac_inc_temp <= '1';
+        end if;  
+        round_robin_next <= 3;
 
       when port4 =>
-      dst_mac <= dst_mac_addr4;
-      src_mac <= src_mac_addr4;
+        dst_mac <= dst_mac_addr4;
+        src_mac <= src_mac_addr4;
+        
+        dst_mac_addr <= dst_mac_addr4;
+        src_mac_addr <= src_mac_addr4;
+        
+        inc_port <= "100";
+        if FCS_error_CU4 = '0' then
+          mac_inc_temp <= '1';
+        end if;  
+        round_robin_next <= 4;
       
-      dst_mac_addr <= dst_mac_addr4;
-      src_mac_addr <= src_mac_addr4;
-      
-      inc_port <= "100";
-      if FCS_error_CU4 = '0' then
-        mac_inc_temp <= '1';
-      end if;  
-      round_robin_next <= 4;
-      
+
       when wait_answer =>
-      if round_robin = 1 and port_sel_temp /= "0000" then
-        send_pkt1_next <= '1';
-        port_sel_out1 <= port_sel_temp;
-      end if;
-      if round_robin = 2 and port_sel_temp /= "0000" then
-        send_pkt2_next <= '1';
-        port_sel_out2 <= port_sel_temp;
-      end if;
-      if round_robin = 3 and port_sel_temp /= "0000" then
-        send_pkt3_next <= '1';
-        port_sel_out3 <= port_sel_temp;
-      end if;
-      if round_robin = 4 and port_sel_temp /= "0000" then
-        send_pkt4_next <= '1';
-        port_sel_out4 <= port_sel_temp;
-      end if;
         mac_inc_temp <= '0';
+        if round_robin = 1 and port_sel_temp /= "0000" then
+          send_pkt1_next <= '1';
+          port_sel_out1 <= port_sel_temp;
+        end if;
+        if round_robin = 2 and port_sel_temp /= "0000" then
+          send_pkt2_next <= '1';
+          port_sel_out2 <= port_sel_temp;
+        end if;
+        if round_robin = 3 and port_sel_temp /= "0000" then
+          send_pkt3_next <= '1';
+          port_sel_out3 <= port_sel_temp;
+        end if;
+        if round_robin = 4 and port_sel_temp /= "0000" then
+          send_pkt4_next <= '1';
+          port_sel_out4 <= port_sel_temp;
+        end if;
 
       when others =>
         null;
     end case;
-
   end process;
 
   MAC : mac_learner
@@ -392,17 +391,17 @@ begin
     
   input_port1 : inputport
     port map (
-        clk  => clk,  
-        reset  => reset,
-        data_in => inport1,
-        valid => valid1,
-        send_data => send1,
+      clk  => clk,  
+      reset  => reset,
+      data_in => inport1,
+      valid => valid1,
+      send_data => send1,
     
-        srcMac => src_mac_addr1,
-        dstMac => dst_mac_addr1,
-        fcs_error_IP => FCS_error_CU1,
-        packet_size => size_of_packet1,
-        data_out => data_out_CU_fcs1
+      srcMac => src_mac_addr1,
+      dstMac => dst_mac_addr1,
+      fcs_error_IP => FCS_error_CU1,
+      packet_size => size_of_packet1,
+      data_out => data_out_CU_fcs1
     );
     
     input_port2 : inputport
@@ -433,7 +432,6 @@ begin
       packet_size => size_of_packet3,
       fcs_error_IP => FCS_error_CU3,
       data_out => data_out_CU_fcs3
-    
     );
         
     input_port4 : inputport
@@ -449,7 +447,6 @@ begin
       packet_size => size_of_packet4,
       fcs_error_IP => FCS_error_CU4,
       data_out => data_out_CU_fcs4
-
     );    
     
 
