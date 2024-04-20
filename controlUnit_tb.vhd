@@ -26,9 +26,18 @@ architecture bench of controlUnit_tb is
   signal valid2 : std_logic;
   -- signal valid3 : std_logic;
   -- signal valid4 : std_logic;
+
   signal port_sel : std_logic_vector (3 downto 0);
+
+
+  signal port_sel_out1 : std_logic_vector (3 downto 0);
+  signal port_sel_out2 : std_logic_vector (3 downto 0);
+  signal port_sel_out3 : std_logic_vector (3 downto 0);
+  signal port_sel_out4 : std_logic_vector (3 downto 0);
+
   signal dst_mac : std_logic_vector (47 downto 0);
   signal src_mac : std_logic_vector (47 downto 0);
+
   signal data_out1 : std_logic_vector (7 downto 0);
   signal data_out2 : std_logic_vector (7 downto 0);
   -- signal data_out3 : std_logic_vector (7 downto 0);
@@ -50,6 +59,11 @@ architecture bench of controlUnit_tb is
     -- valid4  : in std_logic;
 
     port_sel : in std_logic_vector (3 downto 0);
+
+    port_sel_out1 : out std_logic_vector (3 downto 0); --??
+    port_sel_out2 : out std_logic_vector (3 downto 0); --??
+    port_sel_out3 : out std_logic_vector (3 downto 0); --??
+    port_sel_out4 : out std_logic_vector (3 downto 0); --??
         
     dst_mac : out std_logic_vector (47 downto 0);
     src_mac : out std_logic_vector (47 downto 0);
@@ -77,8 +91,15 @@ begin
     -- valid3 => valid3,
     -- valid4 => valid4,
     port_sel => port_sel,
+
+    port_sel_out1 => port_sel_out1,
+    port_sel_out2 => port_sel_out2,
+    port_sel_out3 => port_sel_out3,
+    port_sel_out4 => port_sel_out4,
+
     dst_mac => dst_mac,
     src_mac => src_mac,
+
     data_out1 => data_out1,
     data_out2 => data_out2
     -- data_out3 => data_out3,

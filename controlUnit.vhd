@@ -6,6 +6,7 @@ use ieee.math_real.all;
 use ieee.std_logic_unsigned.all;
 use std.textio.all;
 
+
 entity controlUnit is
   port (
     clk   : in std_logic;
@@ -22,7 +23,12 @@ entity controlUnit is
     -- valid4  : in std_logic;
 
     port_sel : in std_logic_vector (3 downto 0); --??
-    port_sel_out : out std_logic_vector (3 downto 0); --??
+
+    port_sel_out1 : out std_logic_vector (3 downto 0); --??
+    port_sel_out2 : out std_logic_vector (3 downto 0); --??
+    port_sel_out3 : out std_logic_vector (3 downto 0); --??
+    port_sel_out4 : out std_logic_vector (3 downto 0); --??
+
         
     dst_mac : out std_logic_vector (47 downto 0);
     src_mac : out std_logic_vector (47 downto 0);
@@ -42,6 +48,7 @@ architecture controlUnit_arch of controlUnit is
       reset   : in std_logic;
       data_in : in std_logic_vector (7 downto 0);
       valid   : in std_logic;
+      send_data : in std_logic;
 
       srcMac : out std_logic_vector(47 downto 0);
       dstMac : out std_logic_vector(47 downto 0);
@@ -66,31 +73,24 @@ architecture controlUnit_arch of controlUnit is
   end component;
 
   signal inc_port : std_logic_vector(2 downto 0);
-  signal FCS_error_CU1 : std_logic;
-  signal FCS_error_CU2 : std_logic;
-  signal FCS_error_CU3 : std_logic;
-  signal FCS_error_CU4 : std_logic;
+  signal FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4 : std_logic;
 
   signal src_mac_addr : std_logic_vector (47 downto 0);
   signal dst_mac_addr : std_logic_vector (47 downto 0);
   
-  signal src_mac_addr1 : std_logic_vector (47 downto 0);
-  signal src_mac_addr2 : std_logic_vector (47 downto 0);
-  signal src_mac_addr3 : std_logic_vector (47 downto 0);
-  signal src_mac_addr4 : std_logic_vector (47 downto 0);
+  signal src_mac_addr1, src_mac_addr2, src_mac_addr3, src_mac_addr4: std_logic_vector (47 downto 0);
 
-  signal dst_mac_addr1 : std_logic_vector (47 downto 0);
-  signal dst_mac_addr2 : std_logic_vector (47 downto 0);
-  signal dst_mac_addr3 : std_logic_vector (47 downto 0);
-  signal dst_mac_addr4 : std_logic_vector (47 downto 0);
+  signal dst_mac_addr1, dst_mac_addr2, dst_mac_addr3, dst_mac_addr4: std_logic_vector (47 downto 0);
 
   signal mac_inc_temp : std_logic;
   signal port_sel_temp : std_logic_vector (3 downto 0) := (others => '0');
-  signal size_of_packet1, size_of_packet2 : integer;
-  signal legit_packet1, legit_packet2 : std_logic := '0';
-  signal sending_packet1, sending_packet2 : integer := 0;
-  signal good_fcs1, good_fcs2 : std_logic := '0';
+  signal size_of_packet1, size_of_packet2, size_of_packet3, size_of_packet4 : integer;
+  signal sending_packet1, sending_packet2, sending_packet3, sending_packet4 : integer := 0;
+
+  signal send_pkt1, send_pkt2, send_pkt3, send_pkt4 : std_logic := '0';
+  signal send_pkt1_next, send_pkt2_next, send_pkt3_next, send_pkt4_next : std_logic := '0';
   
+  signal send1, send2, send3, send4 : std_logic := '0';
 
   type State_type is (idle, port1, port2, port3, port4, wait_answer);
   signal current_state, next_state : State_type;
@@ -99,13 +99,11 @@ architecture controlUnit_arch of controlUnit is
   signal round_robin, round_robin_next : integer := 1;
 
   signal data_out_CU_fcs1, data_out_CU_fcs2 : std_logic_vector(7 downto 0) := (others => '0');
-  signal wait_3_clock1, wait_3_clock2 : integer := 0;
 
   signal prog_start1, prog_start2, prog_start3, prog_start4 : std_logic := '0';
-  
+  signal delayclock1, delayclock2, delayclock3, delayclock4 : integer := 0;
   
 begin
---port_sel_temp <= port_sel;
   STATE_MEMORY_LOGIC : process (clk, reset)
   begin
     if reset = '1' then
@@ -119,67 +117,58 @@ begin
       if valid2 = '1' then
         prog_start2 <= '1';
       end if;
-      -- if valid3 = '1' then
-      --   prog_start3 = '1';
-      -- end if;
-      -- if valid4 = '1' then
-      --   prog_st art4 = '1';
-      -- end if;
-      
-      --port_sel <= port_sel_temp;
-      -- if legit_packet = '1' then
-         if sending_packet1 <= size_of_packet1 and legit_packet1 = '1' then
-             if good_fcs1 = '1' then
-                data_out1 <= data_out_CU_fcs1;
-             end if;
-           sending_packet1 <= sending_packet1 +1;
-           if sending_packet1 = size_of_packet1 then
-            good_fcs1 <= '0';
-            legit_packet1 <= '0';
-            sending_packet1 <= 0;
-           end if;
-         end if;
 
-         if FCS_error_CU1 = '0' then
-          wait_3_clock1 <= wait_3_clock1 +1;
-          good_fcs1 <= '1';
-        end if;
-        if wait_3_clock1 >= 1 then
-          wait_3_clock1 <= wait_3_clock1 +1;
-        end if;
-        if wait_3_clock1 = 3 then
-          legit_packet1 <= '1';
-          wait_3_clock1 <= 0;
-        end if;
-
-
-
-        if sending_packet2 <= size_of_packet2 and legit_packet2 = '1' then
-          if good_fcs2 = '1' then
-             data_out2 <= data_out_CU_fcs2;
-          end if;
-        sending_packet2 <= sending_packet2 +1;
-        if sending_packet2 = size_of_packet2 then
-         good_fcs2 <= '0';
-         legit_packet2 <= '0';
-         sending_packet2 <= 0;
+      if send_pkt1_next = '1' then
+        send1 <= '1';
+        delayclock1 <= delayclock1 +1;
+      end if;
+      if delayclock1 > 0 then
+        if delayclock1 = 2 then
+          delayclock1 <= 2;
+        else
+          delayclock1 <= delayclock1 +1;
         end if;
       end if;
 
-      if FCS_error_CU2 = '0' then
-       wait_3_clock2 <= wait_3_clock2 +1;
-       good_fcs2 <= '1';
-     end if;
-     if wait_3_clock2 >= 1 then
-       wait_3_clock2 <= wait_3_clock2 +1;
-     end if;
-     if wait_3_clock2 = 3 then
-       legit_packet2 <= '1';
-       wait_3_clock2 <= 0;
-     end if;
+      if send1 = '1' or send_pkt1_next = '1' then
+        if sending_packet1 <= size_of_packet1 and delayclock1 = 2 then
+            data_out1 <= data_out_CU_fcs1;
+            sending_packet1 <= sending_packet1 +1;
+          if sending_packet1 = size_of_packet1 -1 then
+            send_pkt1 <= '0';
+            sending_packet1 <= 0;
+            send1 <= '0';
+            delayclock1 <= 0;
+          end if;
+        end if;
+      end if;
+
+      if send_pkt2_next = '1' then
+        send2 <= '1';
+        delayclock2 <= delayclock2 +1;
+      end if;
+      if delayclock2 > 0 then
+        if delayclock2 = 2 then
+          delayclock2 <= 2;
+        else
+          delayclock2 <= delayclock2 +1;
+        end if;
+      end if;
+
+      if send2 = '1' or send_pkt2_next = '1' then
+          if sending_packet2 <= size_of_packet2 and delayclock2 =2 then
+              data_out2 <= data_out_CU_fcs2;
+              sending_packet2 <= sending_packet2 +1;
+            if sending_packet2 = size_of_packet2 -1 then
+              send_pkt2 <= '0';
+              sending_packet2 <= 0;
+              send2 <= '0';
+              delayclock2 <= 0;
+            end if;
+          end if;
+      end if;
 
 
-      -- end if;
     end if;
   end process;
 
@@ -188,21 +177,24 @@ begin
     next_state <= current_state;
 
     case current_state is
-      when idle =>
-
-      next_state <= port1;
+      when idle => next_state <= port1;
 
         when port1 =>
-
         if valid1 = '0' and prog_start1 = '1' and FCS_error_CU1 = '0' then
           next_state <= wait_answer;
-          -- round_robin_next <= 1;
         else
           next_state <= port2;
         end if;
           
-        when wait_answer =>
+        when port2 =>
+        if valid2 = '0' and prog_start2 = '1' and FCS_error_CU2 = '0' then
+          next_state <= wait_answer;
+          -- round_robin_next <= 3;
+        else
+          next_state <= port3;
+        end if;
 
+        when wait_answer =>
         if port_sel_temp /= "0000" then
           if round_robin_next = 1 then
             next_state <= port2;
@@ -216,22 +208,17 @@ begin
           
         end if;
 
-        when port2 =>
-        if valid2 = '0' and prog_start2 = '1' and FCS_error_CU2 = '0' then
-          next_state <= wait_answer;
-          -- round_robin_next <= 3;
-        else
-          next_state <= port1;
-        end if;
     
       when others =>
         null;
     end case;
   end process;
   
-  OUTPUT_LOGIC : process (current_state, round_robin, mac_inc_temp, FCS_error_CU1)
+  OUTPUT_LOGIC : process (current_state, round_robin, mac_inc_temp, FCS_error_CU1, port_sel_temp)
   begin
     round_robin_next <= round_robin;
+    send_pkt1_next <= send_pkt1;
+    send_pkt2_next <= send_pkt2;
     
     case current_state is
       when idle =>
@@ -252,6 +239,13 @@ begin
       round_robin_next <= 1;
 
       when wait_answer =>
+        if round_robin = 2 and port_sel_temp /= "0000" then
+          send_pkt2_next <= '1';
+          port_sel_out1 <= port_sel_temp;
+        end if;
+        if round_robin = 1 and port_sel_temp /= "0000" then
+          send_pkt1_next <= '1';
+        end if;
         mac_inc_temp <= '0';
 
       when port2 =>
@@ -291,11 +285,11 @@ begin
         reset  => reset,
         data_in => inport1,
         valid => valid1,
+        send_data => send1,
     
         srcMac => src_mac_addr1,
         dstMac => dst_mac_addr1,
         fcs_error_IP => FCS_error_CU1,
-        --data_out => data_out1
         packet_size => size_of_packet1,
         data_out => data_out_CU_fcs1
     );
@@ -306,6 +300,7 @@ begin
       reset  => reset,
       data_in => inport2,
       valid => valid2,
+      send_data => send2,
   
       srcMac => src_mac_addr2,
       dstMac => dst_mac_addr2,

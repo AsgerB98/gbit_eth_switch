@@ -10,6 +10,7 @@ entity inputport is
     reset   : in std_logic;
     data_in : in std_logic_vector (7 downto 0);
     valid   : in std_logic;
+    send_data : in std_logic;
 
     srcMac : out std_logic_vector(47 downto 0);
     dstMac : out std_logic_vector(47 downto 0);
@@ -20,6 +21,8 @@ entity inputport is
 end entity;
 
 architecture inputport_arch of inputport is
+  signal fcs_fromfcs : std_logic;
+  
   signal empty_fifo : std_logic := '0';
   signal full_fifo : std_logic := '0';
   signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
@@ -30,15 +33,14 @@ architecture inputport_arch of inputport is
   signal tempsrc : std_logic_vector (47 downto 0) := (others => '0');
   signal tempdst : std_logic_vector (47 downto 0) := (others => '0');
 
-  signal send_data : std_logic := '0';
+  signal read_fifo : std_logic := '0';
   signal started : std_logic := '0';
   signal numbytes : integer := 0;
-  signal fcs_errors : std_logic;
-  signal wait_3 : integer := 0;
   signal curr_byte : integer := 0;
-  signal legit_packet : std_logic := '0';
+  signal send_pkt : std_logic := '0';
+  
 
-  signal delay_sig_pre, delay_sig_after : std_logic := '0';
+  signal delay_sig, delay_sig_after : std_logic := '0';
   
 
   
@@ -67,7 +69,8 @@ architecture inputport_arch of inputport is
   end component;
   
 begin
-  clk_proc : process (clk, counter, valid, SoF, wait_3, send_data)
+  fcs_error_IP <= fcs_fromfcs;
+  clk_proc : process (clk, counter, valid, SoF, send_data, send_pkt, fcs_fromfcs, delay_sig)
   begin
     if reset = '1' then
 
@@ -76,7 +79,8 @@ begin
         counter <= counter +1;
         started <= '1';
       end if;
-
+      
+      -- Prepping the MAC addrs:
       case counter is
         when 0 => SoF <= '0';
         when 1 => tempsrc(47 downto 40) <= data_in;
@@ -97,39 +101,37 @@ begin
           null;
       end case;
 
-      if curr_byte <= numbytes and legit_packet = '1' then
+      if send_pkt = '1' then
+        read_fifo <= '1';
         curr_byte <= curr_byte +1;
-        if curr_byte = numbytes then
-          send_data <= '0';
-          delay_sig_pre <= '1';
+        if curr_byte = numbytes +1 then -- pkt done
+          read_fifo <= '0';
+          delay_sig <= '0';
           curr_byte <= 0;
-          legit_packet <= '0';
+          send_pkt <= '0';
         end if;
       end if;
 
+      if send_data = '1' then
+        read_fifo <= '1';
+        curr_byte <= curr_byte +1;
+        if curr_byte = numbytes then -- pkt done
+          read_fifo <= '0';
+          delay_sig <= '0';
+          curr_byte <= 0;
+          send_pkt <= '0';
+         end if;
+      end if;
+
       if valid = '0' and started = '1' then
-        numbytes <= counter -2;
+        delay_sig <= '1';
+        if fcs_fromfcs = '1' and delay_sig = '1' then
+          send_pkt <= '1';
+        end if;
+        numbytes <= counter;
         packet_size <= counter;
-        wait_3 <= wait_3 +1;
       end if;
-      
-      if wait_3 >= 1 then
-        wait_3 <= wait_3 +1;
-      end if;
-      
-      if wait_3 = 3 then
-        wait_3 <= 0;
-        send_data <= '1';
-        delay_sig_after <= '1';
-      end if;
-      if delay_sig_after = '1' then
-        delay_sig_after <= '0';
-      end if;
-      
-      if delay_sig_after = '1' then
-        legit_packet <= '1';
-        
-      end if;
+
 
     end if;
 
@@ -146,7 +148,7 @@ begin
     port map (
       clock => clk,
       data => data_in,
-      rdreq => send_data,
+      rdreq => read_fifo,
       wrreq => valid,
       empty => empty_fifo,
       full => full_fifo,
@@ -160,7 +162,7 @@ begin
       reset => reset,
       start_of_frame => SoF, 
       data_in => data_in,
-      fcs_error => fcs_error_IP
+      fcs_error => fcs_fromfcs
     );
 
 
