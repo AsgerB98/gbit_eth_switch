@@ -45,18 +45,18 @@ end entity;
       elsif rising_edge(clk) then
         current_state <= next_state;
         
-        if donesch1 = '1' then
-          delaydone1 <= '1';
-        end if;
+        -- if donesch1 = '1' then
+        --   delaydone1 <= '1';
+        -- end if;
 
-        if delaydone1 = '1' then
-          delaydone2 <= '1';
-        end if;
+        -- if delaydone1 = '1' then
+        --   delaydone2 <= '1';
+        -- end if;
 
-        if delaydone2 = '1' then
-          delaydone1 <= '0';
-          delaydone2 <= '0';
-        end if;
+        -- if delaydone2 = '1' then
+        --   delaydone1 <= '0';
+        --   delaydone2 <= '0';
+        -- end if;
 
       end if;
     end process;

@@ -17,10 +17,10 @@ entity full_crossbar is
     inport3 : in std_logic_vector (7 downto 0);
     inport4 : in std_logic_vector (7 downto 0);
 
-    done1 : in std_logic;
-    done2 : in std_logic;
-    done3 : in std_logic;
-    done4 : in std_logic;
+    -- done1 : in std_logic;
+    -- done2 : in std_logic;
+    -- done3 : in std_logic;
+    -- done4 : in std_logic;
 
     port_sel_in1 : in std_logic_vector (3 downto 0);
     port_sel_in2 : in std_logic_vector (3 downto 0);
@@ -91,10 +91,10 @@ architecture full_crossbar_arch of full_crossbar is
   
 
 begin
-  forwarddone1 <= done1;
-  forwarddone2 <= done2;
-  forwarddone3 <= done3;
-  forwarddone4 <= done4;
+  -- forwarddone1 <= done1;
+  -- forwarddone2 <= done2;
+  -- forwarddone3 <= done3;
+  -- forwarddone4 <= done4;
 
   process (clk, reset)
   begin

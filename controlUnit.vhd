@@ -23,14 +23,16 @@ entity controlUnit is
     valid4  : in std_logic;
 
     port_sel : in std_logic_vector (3 downto 0); --??
+    inc_port : out std_logic_vector(2 downto 0);
+    send_mac : out std_logic;
 
     port_sel_out1 : out std_logic_vector (3 downto 0); --??
     port_sel_out2 : out std_logic_vector (3 downto 0); --??
     port_sel_out3 : out std_logic_vector (3 downto 0); --??
     port_sel_out4 : out std_logic_vector (3 downto 0); --??
         
-    dst_mac : out std_logic_vector (47 downto 0);
     src_mac : out std_logic_vector (47 downto 0);
+    dst_mac : out std_logic_vector (47 downto 0);
 
     data_out1 : out std_logic_vector (7 downto 0);
     data_out2 : out std_logic_vector (7 downto 0);
@@ -57,21 +59,21 @@ architecture controlUnit_arch of controlUnit is
     );
   end component;
 
-  component mac_learner is
-    port (
-      clk     : in std_logic;
-      reset   : in std_logic;
-      sMAC    : in std_logic_vector (47 downto 0);
-      dMAC    : in std_logic_vector (47 downto 0);
-      portnum : in std_logic_vector (2 downto 0);
-      MAC_inc : in std_logic; -- a mac address is coming
+  -- component mac_learner is
+  --   port (
+  --     clk     : in std_logic;
+  --     reset   : in std_logic;
+  --     sMAC    : in std_logic_vector (47 downto 0);
+  --     dMAC    : in std_logic_vector (47 downto 0);
+  --     portnum : in std_logic_vector (2 downto 0);
+  --     MAC_inc : in std_logic; -- a mac address is coming
 
-      sel     : out std_logic_vector (3 downto 0)
+  --     sel     : out std_logic_vector (3 downto 0)
             
-    );
-  end component;
+  --   );
+  -- end component;
 
-  signal inc_port : std_logic_vector(2 downto 0);
+  --signal inc_port : std_logic_vector(2 downto 0);
   signal FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4 : std_logic;
 
   signal src_mac_addr : std_logic_vector (47 downto 0);
@@ -82,7 +84,7 @@ architecture controlUnit_arch of controlUnit is
   signal dst_mac_addr1, dst_mac_addr2, dst_mac_addr3, dst_mac_addr4: std_logic_vector (47 downto 0);
 
   signal mac_inc_temp : std_logic;
-  signal port_sel_temp : std_logic_vector (3 downto 0) := (others => '0');
+  --signal port_sel : std_logic_vector (3 downto 0) := (others => '0');
   signal size_of_packet1, size_of_packet2, size_of_packet3, size_of_packet4 : integer;
   signal sending_packet1, sending_packet2, sending_packet3, sending_packet4 : integer := 0;
 
@@ -226,7 +228,7 @@ begin
   end process;
   
 
-  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, port_sel_temp, round_robin_next, valid1, prog_start1, prog_start2)
+  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, port_sel, round_robin_next, valid1, prog_start1, prog_start2)
   begin
     next_state <= current_state;
 
@@ -265,7 +267,7 @@ begin
         end if;
 
         when wait_answer =>
-        if port_sel_temp /= "0000" then
+        if port_sel /= "0000" then
           if round_robin_next = 1 then
             next_state <= port2;
           elsif round_robin_next = 2 then
@@ -283,7 +285,7 @@ begin
     end case;
   end process;
   
-  OUTPUT_LOGIC : process (current_state, round_robin, mac_inc_temp, FCS_error_CU1, port_sel_temp)
+  OUTPUT_LOGIC : process (current_state, round_robin, FCS_error_CU1, port_sel)
   begin
     round_robin_next <= round_robin;
     send_pkt1_next <= send_pkt1;
@@ -293,7 +295,7 @@ begin
     
     case current_state is
       when idle =>
-        --port_sel_temp <= "0000";
+        --port_sel <= "0000";
       when port1 =>
         dst_mac <= dst_mac_addr1;
         src_mac <= src_mac_addr1;
@@ -303,7 +305,7 @@ begin
 
         inc_port <= "001";
         if FCS_error_CU1 = '0' then
-          mac_inc_temp <= '1';
+          send_mac <= '1';
         end if;
         round_robin_next <= 1;
 
@@ -316,7 +318,7 @@ begin
         
         inc_port <= "010";
         if FCS_error_CU2 = '0' then
-          mac_inc_temp <= '1';
+          send_mac <= '1';
         end if;  
         round_robin_next <= 2;
 
@@ -329,7 +331,7 @@ begin
         
         inc_port <= "011";
         if FCS_error_CU3 = '0' then
-          mac_inc_temp <= '1';
+          send_mac <= '1';
         end if;  
         round_robin_next <= 3;
 
@@ -342,27 +344,27 @@ begin
         
         inc_port <= "100";
         if FCS_error_CU4 = '0' then
-          mac_inc_temp <= '1';
+          send_mac <= '1';
         end if;  
         round_robin_next <= 4;
 
       when wait_answer =>
-        mac_inc_temp <= '0';
-        if round_robin = 1 and port_sel_temp /= "0000" then
+      send_mac <= '0';
+        if round_robin = 1 and port_sel /= "0000" then
           send_pkt1_next <= '1';
-          port_sel_out1 <= port_sel_temp;
+          port_sel_out1 <= port_sel;
         end if;
-        if round_robin = 2 and port_sel_temp /= "0000" then
+        if round_robin = 2 and port_sel /= "0000" then
           send_pkt2_next <= '1';
-          port_sel_out2 <= port_sel_temp;
+          port_sel_out2 <= port_sel;
         end if;
-        if round_robin = 3 and port_sel_temp /= "0000" then
+        if round_robin = 3 and port_sel /= "0000" then
           send_pkt3_next <= '1';
-          port_sel_out3 <= port_sel_temp;
+          port_sel_out3 <= port_sel;
         end if;
-        if round_robin = 4 and port_sel_temp /= "0000" then
+        if round_robin = 4 and port_sel /= "0000" then
           send_pkt4_next <= '1';
-          port_sel_out4 <= port_sel_temp;
+          port_sel_out4 <= port_sel;
         end if;
 
       when others =>
@@ -370,16 +372,16 @@ begin
     end case;
   end process;
 
-  MAC : mac_learner
-    port map (
-      clk  => clk,
-      reset => reset,
-      sMAC => src_mac_addr,
-      dMAC => dst_mac_addr,
-      portnum => inc_port,
-      MAC_inc => mac_inc_temp, -- a mac address is coming
-      sel => port_sel_temp
-    );
+  -- MAC : mac_learner
+  --   port map (
+  --     clk  => clk,
+  --     reset => reset,
+  --     sMAC => src_mac_addr,
+  --     dMAC => dst_mac_addr,
+  --     portnum => inc_port,
+  --     MAC_inc => send_mac, -- a mac address is coming (was mac_inc_temp before!)
+  --     sel => port_sel
+  --   );
     
   input_port1 : inputport
     port map (
