@@ -94,7 +94,7 @@ begin
     data_out4 => data_out4
   );
 -- clk <= not clk after clk_period/2;
-reading_proc : process (clk)
+reading_proc : process (clk, reset)
   file input : TEXT open READ_MODE is "Input_packet_CB.txt"; 
   
   variable current_read_line	: line;
@@ -105,7 +105,10 @@ reading_proc : process (clk)
 
 begin
 
-  if rising_edge(clk) then
+  if reset = '1' then
+    
+  
+  elsif rising_edge(clk) then
     readline(input, current_read_line);
     hread(current_read_line, current_read_field);
     read(current_read_line, current_write_line);
@@ -113,6 +116,7 @@ begin
 
     inport1 <= current_read_field;
     done1 <= current_write_line;
+    --port_sel_in1 <= "0010";
 
     inport2 <= current_read_field;
     done2 <= current_write_line;
@@ -125,11 +129,45 @@ begin
   end if;
 end process;
 
+portin : process
+begin
+  wait for clk_period;
+  port_sel_in1 <= "1111";
+  port_sel_in2 <= "0001";
+  port_sel_in3 <= "0001";
+  port_sel_in4 <= "0001";
+  
+  wait for 320 ns; -- Use 'wait for' instead of 'wait'
+  port_sel_in1 <= "0011";
+  port_sel_in2 <= "0011";
+  port_sel_in3 <= "0100";
+  port_sel_in4 <= "0001";
+  wait for 320 ns;
+  port_sel_in1 <= "0100";
+
+  wait for 320 ns;
+  port_sel_in4 <= "0011";
+
+  wait for 320 ns;
+  port_sel_in1 <= "1111";
+  
+  wait for 320 ns;
+  port_sel_in1 <= "0011";
+  wait; -- Add a wait statement to prevent the process from terminating immediately
+end process portin;
+
+
+reset_proc : process
+begin
+  reset <= '1'; wait for clk_period;
+  reset <= '0'; wait;
+end process;
+
 clk_process : process
 begin
   clk <= '1'; wait for clk_period/2;
   clk <= '0'; wait for clk_period/2;
 
-end process clk_process;
+end process;
 
 end;
