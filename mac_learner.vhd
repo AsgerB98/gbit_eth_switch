@@ -26,7 +26,6 @@ architecture mac_learner_arch of mac_learner is
   signal address : std_logic_vector(12 downto 0) := (others => '0');
   constant g : std_logic_vector(12 downto 0) := "1100000001111";
   signal SMACport : std_logic_vector(50 downto 0) := (others => '0');
-  signal count : integer := 0;
   signal  memory : std_logic_vector (47 downto 0) := (others => '0');
   signal sel_from_mem : std_logic_vector(2 downto 0) := "000";
   
@@ -99,7 +98,7 @@ begin
       end if;
   end process;
 
-  next_state_logic : process (current_state, count, MAC_inc)
+  next_state_logic : process (current_state, MAC_inc)
   begin
     next_state <= current_state;
 

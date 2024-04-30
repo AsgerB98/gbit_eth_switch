@@ -100,14 +100,17 @@ begin
       -- done1 <= current_write_line;
       -- --port_sel_in1 <= "0010";
 
-      -- inport2 <= current_read_field;
+      inport2 <= current_read_field;
+      valid2 <= current_write_line;
       -- done2 <= current_write_line;
 
-      -- inport3 <= current_read_field;
-      -- done3 <= current_write_line;
+      inport3 <= current_read_field;
+      valid3 <= current_write_line;
+      -- --done3 <= current_write_line;
 
-      -- inport4 <= current_read_field;
-      -- done4 <= current_write_line;
+      inport4 <= current_read_field;
+       valid4 <= current_write_line;
+      --done4 <= current_write_line;
     end if;
   end process;
 

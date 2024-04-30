@@ -63,7 +63,12 @@ architecture switch_core_arch of switch_core is
       data_out1 : out std_logic_vector (7 downto 0);
       data_out2 : out std_logic_vector (7 downto 0);
       data_out3 : out std_logic_vector (7 downto 0);
-      data_out4 : out std_logic_vector (7 downto 0)
+      data_out4 : out std_logic_vector (7 downto 0);
+
+      done_send1 : out std_logic;
+      done_send2 : out std_logic;
+      done_send3 : out std_logic;
+      done_send4 : out std_logic
     );
   end component;
     
@@ -91,10 +96,10 @@ architecture switch_core_arch of switch_core is
       inport3 : in std_logic_vector (7 downto 0);
       inport4 : in std_logic_vector (7 downto 0);
   
-      -- done1 : in std_logic;
-      -- done2 : in std_logic;
-      -- done3 : in std_logic;
-      -- done4 : in std_logic;
+      done1 : in std_logic;
+      done2 : in std_logic;
+      done3 : in std_logic;
+      done4 : in std_logic;
   
       port_sel_in1 : in std_logic_vector (3 downto 0);
       port_sel_in2 : in std_logic_vector (3 downto 0);
@@ -123,18 +128,15 @@ architecture switch_core_arch of switch_core is
   signal data_out2_CUCB : std_logic_vector (7 downto 0);
   signal data_out3_CUCB : std_logic_vector (7 downto 0);
   signal data_out4_CUCB : std_logic_vector (7 downto 0);
+
+  signal done_send_wire1, done_send_wire2, done_send_wire3, done_send_wire4 : std_logic;
+  
   
   signal fromport : std_logic_vector (2 downto 0);
-  signal MAC_inc_toML : std_logic;
-  
-  signal valid_sig1, valid_sig2, valid_sig3, valid_sig4 : std_logic;
-  
+  signal MAC_inc_toML : std_logic;  
 
 begin
-  valid_sig1 <= valid1;
-  valid_sig2 <= valid2;
-  valid_sig3 <= valid3;
-  valid_sig4 <= valid4;
+
 
   controlUnitCU : controlUnit
     port map (
@@ -166,7 +168,12 @@ begin
       data_out1 => data_out1_CUCB,
       data_out2 => data_out2_CUCB,
       data_out3 => data_out3_CUCB,
-      data_out4 => data_out4_CUCB
+      data_out4 => data_out4_CUCB,
+
+      done_send1 => done_send_wire1,
+      done_send2 => done_send_wire2,
+      done_send3 => done_send_wire3,
+      done_send4 => done_send_wire4
     );
 
   mac_learnerML : mac_learner
@@ -177,7 +184,7 @@ begin
       sMAC => src_mac_ML,
       dMAC => dst_mac_ML,
       portnum => fromport,
-      MAC_inc => MAC_inc_toML,
+      MAC_inc => MAC_inc_toML, -- MAC INC SKAL FIXES
       sel => sel_from_ML
       );
 
@@ -192,7 +199,11 @@ begin
       inport3 => data_out3_CUCB,
       inport4 => data_out4_CUCB,
 
-      -- INSERT HERE FOR DONE SIGNALS IF NEEDED
+      done1 => done_send_wire1,
+      done2 => done_send_wire2,
+      done3 => done_send_wire3,
+      done4 => done_send_wire4,
+
       port_sel_in1 => port_sel_CUCB1,
       port_sel_in2 => port_sel_CUCB2,
       port_sel_in3 => port_sel_CUCB3,

@@ -6,8 +6,6 @@ use ieee.math_real.all;
 use ieee.std_logic_unsigned.all;
 use std.textio.all;
 
-
-
 entity schedulerCB is
   port (
     clk   : in std_logic;
@@ -33,7 +31,6 @@ end entity;
     
     type State_type is (idle, port1, port2, port3, wait_pkt);
     signal current_state, next_state : State_type;
-  
     signal delaydone1, delaydone2 : std_logic := '0';
     
   begin
@@ -44,24 +41,11 @@ end entity;
         current_state <= idle;
       elsif rising_edge(clk) then
         current_state <= next_state;
-        
-        -- if donesch1 = '1' then
-        --   delaydone1 <= '1';
-        -- end if;
-
-        -- if delaydone1 = '1' then
-        --   delaydone2 <= '1';
-        -- end if;
-
-        -- if delaydone2 = '1' then
-        --   delaydone1 <= '0';
-        --   delaydone2 <= '0';
-        -- end if;
 
       end if;
     end process;
 
-    NEXT_STATE_LOGIC : process (current_state, delaydone1, delaydone2, isempty1, isempty2, isempty3)
+    NEXT_STATE_LOGIC : process (current_state, delaydone1, delaydone2, isempty1, isempty2, isempty3, sendfifo1, sendfifo2, sendfifo3)
     begin
       next_state <= current_state;
 
@@ -74,8 +58,8 @@ end entity;
           if isempty1 = '1' and isempty2 = '0' then
             next_state <= port2;
           elsif isempty1 = '1' and isempty3 = '0'  then
-            next_state <= port2;
-          else
+            next_state <= port3;
+          elsif isempty1 = '1' and isempty2 = '1' and isempty3 = '1' then
             next_state <= wait_pkt;
           end if;
 
@@ -84,7 +68,7 @@ end entity;
             next_state <= port1;
           elsif isempty2 = '1' and isempty3 = '0'  then
             next_state <= port3;
-          else
+          elsif isempty1 = '1' and isempty2 = '1' and isempty3 = '1' then
             next_state <= wait_pkt;
           end if;
           
@@ -93,16 +77,16 @@ end entity;
             next_state <= port1;
           elsif isempty3 = '1' and isempty2 = '0'  then
             next_state <= port2;
-          else
+          elsif isempty1 = '1' and isempty2 = '1' and isempty3 = '1' then
             next_state <= wait_pkt;
           end if;
 
         when wait_pkt =>
-          if isempty1 = '0' then
+          if sendfifo1 = '1' then
             next_state <= port1;
-          elsif isempty2 = '0' then
+          elsif sendfifo2 = '1' then
             next_state <= port2;
-          elsif isempty3 = '0' then
+          elsif sendfifo3 = '1' then
             next_state <= port3;
           end if;
     
@@ -131,6 +115,9 @@ end entity;
           outfifo3 <= '1';
         
         when wait_pkt =>
+          outfifo1 <= '0';
+          outfifo2 <= '0';
+          outfifo3 <= '0';
 
         when others => null;
       end case;
