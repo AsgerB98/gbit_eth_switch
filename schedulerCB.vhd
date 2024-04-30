@@ -15,8 +15,6 @@ entity schedulerCB is
     sendfifo2 : in std_logic;
     sendfifo3 : in std_logic;
 
-    donesch1  : in std_logic;
-
     isempty1  : in std_logic;
     isempty2  : in std_logic;
     isempty3  : in std_logic;
@@ -32,7 +30,9 @@ end entity;
     type State_type is (idle, port1, port2, port3, wait_pkt);
     signal current_state, next_state : State_type;
     signal delaydone1, delaydone2 : std_logic := '0';
+    signal delayread1, delayread2, delayread3, delayread4 : std_logic;
     
+
   begin
   
     STATE_MEMORY_LOGIC : process (clk, reset, sendfifo1, sendfifo2, sendfifo3)
@@ -96,7 +96,7 @@ end entity;
       end case;
     end process;
 
-    OUTPUT_LOGIC : process (current_state, donesch1)
+    OUTPUT_LOGIC : process (current_state)
     begin
       case current_state is
         when port1 =>

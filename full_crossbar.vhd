@@ -59,8 +59,6 @@ architecture full_crossbar_arch of full_crossbar is
       sendfifo2 : in std_logic;
       sendfifo3 : in std_logic;
 
-      donesch1  : in std_logic;
-
       isempty1  : in std_logic;
       isempty2  : in std_logic;
       isempty3  : in std_logic;
@@ -82,7 +80,6 @@ architecture full_crossbar_arch of full_crossbar is
 
   signal empty12, empty13, empty14, empty21, empty23, empty24, empty31, empty32, empty34, empty41, empty42, empty43 : std_logic;
   signal write12, write13, write14, write21, write23, write24, write31, write32, write34, write41, write42, write43 : std_logic := '0';
-  signal forwarddone1, forwarddone2, forwarddone3, forwarddone4 : std_logic;
   signal data_out12, data_out13, data_out14, data_out21, data_out23, data_out24, data_out31, data_out32, data_out34, data_out41, data_out42, data_out43 : std_logic_vector (7 downto 0) := (others => '0');
   signal holdsel1, holdsel2, holdsel3, holdsel4 : std_logic_vector (3 downto 0);
 
@@ -104,37 +101,43 @@ begin
 
   process (done1, done2, done3, done4, port_sel_in1, port_sel_in2, port_sel_in3, port_sel_in4, inport1, inport2, inport3, inport4, holdsel1, holdsel2, holdsel3, holdsel4)
   begin
+
     if port_sel_in1 /= "0000" then
-      holdsel1 <= port_sel_in1; -- vent 2 cykler med at sætte
-    end if;
-    if done1 = '1' then
-      holdsel1 <= "0000";
+      holdsel1 <= port_sel_in1;
     end if;
 
     if port_sel_in2 /= "0000" then
       holdsel2 <= port_sel_in2;
     end if;
+    
+    if port_sel_in3 /= "0000" then
+      holdsel3 <= port_sel_in3;
+    end if;
+    
+    if port_sel_in4 /= "0000" then
+      holdsel4 <= port_sel_in4;
+    end if;
+    
+
+    if done1 = '1' then
+      holdsel1 <= "0000";
+    end if;
+
     if done2 = '1' then
       holdsel2 <= "0000";
     end if;
 
-    if port_sel_in3 /= "0000" then
-      holdsel3 <= port_sel_in3;
-    end if;
     if done3 = '1' then
       holdsel3 <= "0000";
     end if;
 
-    if port_sel_in4 /= "0000" then
-      holdsel4 <= port_sel_in4;
-    end if;
     if done4 = '1' then
       holdsel4 <= "0000";
     end if;
   
+
     case holdsel1 is
     when "0010" =>
-      if inport1 /= "UUUUUUUU" then
         write12 <= '1';
         write13 <= '0';
         write14 <= '0';
@@ -143,21 +146,31 @@ begin
           write12 <= '0';
           write13 <= '0';
           write14 <= '0';
-        end if;
       end if;
 
     when "0011" =>
       write12 <= '0';
       write13 <= '1';
       write14 <= '0';
+      
+      if done1 = '1' then
+        write12 <= '0';
+        write13 <= '0';
+        write14 <= '0';
+    end if;
 
     when "0100" =>
       write12 <= '0';
       write13 <= '0';
       write14 <= '1';
 
+      if done1 = '1' then
+        write12 <= '0';
+        write13 <= '0';
+        write14 <= '0';
+    end if;
+
     when "1111" =>
-      --if inport1 /= "UUUUUUUU" then
         write12 <= '1';
         write13 <= '1';
         write14 <= '1';
@@ -166,8 +179,6 @@ begin
           write12 <= '0';
           write13 <= '0';
           write14 <= '0';
-        --end if;
-      
       end if;
   
     when others =>
@@ -179,19 +190,33 @@ begin
       write21 <= '1';
       write23 <= '0';
       write24 <= '0';
+      if done2 = '1' then
+        write21 <= '0';
+        write23 <= '0';
+        write24 <= '0';
+    end if;
 
     when "0011" =>
       write21 <= '0';
       write23 <= '1';
       write24 <= '0';
+      if done2 = '1' then
+        write21 <= '0';
+        write23 <= '0';
+        write24 <= '0';
+    end if;
 
     when "0100" =>
       write21 <= '0';
       write23 <= '0';
       write24 <= '1';
+      if done2 = '1' then
+        write21 <= '0';
+        write23 <= '0';
+        write24 <= '0';
+    end if;
 
     when "1111" =>
-      --if inport2 /= "UUUUUUUU" then
         write21 <= '1';
         write23 <= '1';
         write24 <= '1';
@@ -200,7 +225,6 @@ begin
           write21 <= '0';
           write23 <= '0';
           write24 <= '0';
-        --end if;
       end if;
 
     when others =>
@@ -212,23 +236,36 @@ begin
       write31 <= '1';
       write32 <= '0';
       write34 <= '0';
+      if done3 = '1' then
+        write31 <= '0';
+        write32 <= '0';
+        write34 <= '0';
+      end if;
 
     when "0010" =>
       write31 <= '0';
       write32 <= '1';
       write34 <= '0';
+      if done3 = '1' then
+        write31 <= '0';
+        write32 <= '0';
+        write34 <= '0';
+      end if;
 
     when "0100" =>
       write31 <= '0';
       write32 <= '0';
       write34 <= '1';
+      if done3 = '1' then
+        write31 <= '0';
+        write32 <= '0';
+        write34 <= '0';
+      end if;
     
     when "1111" =>
-      --if inport3 /= "UUUUUUUU" then
         write31 <= '1';
         write32 <= '1';
         write34 <= '1';
-      --end if;
       if done3 = '1' then
         write31 <= '0';
         write32 <= '0';
@@ -243,23 +280,36 @@ begin
       write41 <= '1';
       write42 <= '0';
       write43 <= '0';
+      if done4 = '1' then
+        write41 <= '0';
+        write42 <= '0';
+        write43 <= '0';
+      end if;
 
     when "0010" =>
       write41 <= '0';
       write42 <= '1';
       write43 <= '0';
+      if done4 = '1' then
+        write41 <= '0';
+        write42 <= '0';
+        write43 <= '0';
+      end if;
 
     when "0011" =>
       write41 <= '0';
       write42 <= '0';
       write43 <= '1';
-    
+      if done4 = '1' then
+        write41 <= '0';
+        write42 <= '0';
+        write43 <= '0';
+      end if;
+
     when "1111" =>
-      --if inport4 /= "UUUUUUUU" then
         write41 <= '1';
         write42 <= '1';
         write43 <= '1';
-      --end if;
       if done4 = '1' then
         write41 <= '0';
         write42 <= '0';
@@ -317,8 +367,6 @@ end process;
       sendfifo2 => write31,
       sendfifo3 => write41,
 
-      donesch1 => forwarddone1,
-
       isempty1  => empty21,
       isempty2  => empty31,
       isempty3  => empty41,
@@ -336,8 +384,6 @@ end process;
       sendfifo1 => write12,
       sendfifo2 => write32,
       sendfifo3 => write42,
-
-      donesch1 => forwarddone2,
 
       isempty1  => empty12,
       isempty2  => empty32,
@@ -357,8 +403,6 @@ end process;
       sendfifo2 => write23,
       sendfifo3 => write43,
 
-      donesch1 => forwarddone3,
-
       isempty1  => empty13,
       isempty2  => empty23,
       isempty3  => empty43,
@@ -376,8 +420,6 @@ end process;
       sendfifo1 => write14,
       sendfifo2 => write24,
       sendfifo3 => write34,
-
-      donesch1 => forwarddone4,
 
       isempty1  => empty14,
       isempty2  => empty24,

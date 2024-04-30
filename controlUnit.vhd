@@ -63,11 +63,15 @@ architecture controlUnit_arch of controlUnit is
     );
   end component;
 
+  signal dst_mac_next, src_mac_next : std_logic_vector (47 downto 0) := (others => '0');
+  signal dst_mac_read, src_mac_read : std_logic_vector (47 downto 0) := (others => '0');
+
+  signal inc_port_next, inc_port_read : std_logic_vector (2 downto 0) := (others => '0');
+  
+  
+
   signal FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4 : std_logic;
 
-  signal src_mac_addr : std_logic_vector (47 downto 0);
-  signal dst_mac_addr : std_logic_vector (47 downto 0);
-  
   signal src_mac_addr1, src_mac_addr2, src_mac_addr3, src_mac_addr4: std_logic_vector (47 downto 0);
   signal dst_mac_addr1, dst_mac_addr2, dst_mac_addr3, dst_mac_addr4: std_logic_vector (47 downto 0);
 
@@ -97,6 +101,11 @@ architecture controlUnit_arch of controlUnit is
 
   
 begin
+
+  dst_mac <= dst_mac_next;
+  src_mac <= src_mac_next;
+
+
   STATE_MEMORY_LOGIC : process (clk, reset, next_state, round_robin_next,
     send_pkt1_next, send_pkt2_next, send_pkt3_next, send_pkt4_next, delayclock1, delayclock2, delayclock3, delayclock4,
     sending_packet1, sending_packet2, sending_packet3, sending_packet4, size_of_packet1, size_of_packet2, size_of_packet3, size_of_packet4,
@@ -108,6 +117,8 @@ begin
     elsif rising_edge(clk) then
       current_state <= next_state;
       round_robin <= round_robin_next;
+      dst_mac_read <= dst_mac_next;
+      src_mac_read <= src_mac_next;
       
 
       if send_pkt1_next = '1' then
@@ -276,7 +287,8 @@ begin
   end process;
   
 
-  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4, port_sel, round_robin_next, valid1, valid2, valid3, valid4, prog_start1, prog_start2, prog_start3, prog_start4)
+  NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4, port_sel, round_robin_next, valid1, valid2, valid3, valid4, prog_start1, prog_start2, prog_start3, prog_start4,
+    checkedp1, checkedp2, checkedp3, checkedp4)
   begin
     next_state <= current_state;
 
@@ -293,7 +305,6 @@ begin
         when port2 =>
         if valid2 = '0' and prog_start2 = '1' and FCS_error_CU2 = '0' and checkedp2 = '0'then
           next_state <= wait_answer;
-          -- round_robin_next <= 3;
         else
           next_state <= port3;
         end if;
@@ -301,7 +312,6 @@ begin
         when port3 =>
         if valid3 = '0' and prog_start3 = '1' and FCS_error_CU3 = '0' and checkedp3 = '0' then
           next_state <= wait_answer;
-          -- round_robin_next <= 3;
         else
           next_state <= port4;
         end if;
@@ -309,7 +319,6 @@ begin
         when port4 =>
         if valid4 = '0' and prog_start4 = '1' and FCS_error_CU4 = '0' and checkedp4 = '0' then
           next_state <= wait_answer;
-          -- round_robin_next <= 3;
         else
           next_state <= port1;
         end if;
@@ -333,24 +342,25 @@ begin
     end case;
   end process;
   
-  OUTPUT_LOGIC : process (current_state, round_robin, FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4, checkedp1, checkedp2, checkedp3, checkedp4, valid1, valid2, valid3, valid4, port_sel)
+  OUTPUT_LOGIC : process (current_state, round_robin, FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4, checkedp1, checkedp2, checkedp3, checkedp4, valid1, valid2, valid3, valid4, port_sel,
+    send_pkt1, send_pkt2, send_pkt3, send_pkt4, dst_mac_addr1, src_mac_addr1, dst_mac_addr2, src_mac_addr2, dst_mac_addr3, src_mac_addr3, dst_mac_addr4, src_mac_addr4, dst_mac_read, src_mac_read)
   begin
     round_robin_next <= round_robin;
     send_pkt1_next <= send_pkt1;
     send_pkt2_next <= send_pkt2;
     send_pkt3_next <= send_pkt3;
     send_pkt4_next <= send_pkt4;
+
+    src_mac_next <= src_mac_read;
+    dst_mac_next <= dst_mac_read;
     
     case current_state is
       when idle =>
         --port_sel <= "0000";
       when port1 =>
         --port_sel_out1 <= "0000";
-        dst_mac <= dst_mac_addr1;
-        src_mac <= src_mac_addr1;
-
-        dst_mac_addr <= dst_mac_addr1;
-        src_mac_addr <= src_mac_addr1;
+        dst_mac_next <= dst_mac_addr1;
+        src_mac_next <= src_mac_addr1;
 
         inc_port <= "001";
         if FCS_error_CU1 = '0' and checkedp1 = '0' and valid1 = '0' then
@@ -363,11 +373,8 @@ begin
 
       when port2 =>
         --port_sel_out2 <= "0000";
-        dst_mac <= dst_mac_addr2;
-        src_mac <= src_mac_addr2;
-        
-        dst_mac_addr <= dst_mac_addr2;
-        src_mac_addr <= src_mac_addr2;
+        dst_mac_next <= dst_mac_addr2;
+        src_mac_next <= src_mac_addr2;
         
         inc_port <= "010";
         if FCS_error_CU2 = '0' and checkedp2 = '0' and valid2 = '0' then
@@ -381,11 +388,8 @@ begin
 
       when port3 =>
         --port_sel_out3 <= "0000";
-        dst_mac <= dst_mac_addr3;
-        src_mac <= src_mac_addr3;
-        
-        dst_mac_addr <= dst_mac_addr3;
-        src_mac_addr <= src_mac_addr3;
+        dst_mac_next <= dst_mac_addr3;
+        src_mac_next <= src_mac_addr3;
         
         inc_port <= "011";
         if FCS_error_CU3 = '0' and checkedp3 = '0' and valid3 = '0' then
@@ -399,11 +403,8 @@ begin
 
       when port4 =>
         --port_sel_out4 <= "0000";
-        dst_mac <= dst_mac_addr4;
-        src_mac <= src_mac_addr4;
-        
-        dst_mac_addr <= dst_mac_addr4;
-        src_mac_addr <= src_mac_addr4;
+        dst_mac_next <= dst_mac_addr4;
+        src_mac_next <= src_mac_addr4;
         
         inc_port <= "100";
         if FCS_error_CU4 = '0' and checkedp4 = '0' and valid4 = '0' then
@@ -419,25 +420,21 @@ begin
       send_mac <= '0';
         if round_robin = 1 and port_sel /= "0000" then
           send_pkt1_next <= '1';
-          --port_sel_out1 <= port_sel;
           keepsel1 <= port_sel;
           checkedp1 <= '1';
         end if;
         if round_robin = 2 and port_sel /= "0000" then
           send_pkt2_next <= '1';
-          --port_sel_out2 <= port_sel;
           keepsel2 <= port_sel;
           checkedp2 <= '1';
         end if;
         if round_robin = 3 and port_sel /= "0000" then
           send_pkt3_next <= '1';
-          --port_sel_out3 <= port_sel;
           keepsel3 <= port_sel;
           checkedp3 <= '1';
         end if;
         if round_robin = 4 and port_sel /= "0000" then
           send_pkt4_next <= '1';
-          --port_sel_out4 <= port_sel;
           keepsel4 <= port_sel;
           checkedp4 <= '1';
         end if;
