@@ -67,7 +67,7 @@ architecture controlUnit_arch of controlUnit is
   signal dst_mac_read, src_mac_read : std_logic_vector (47 downto 0) := (others => '0');
 
   signal inc_port_next, inc_port_read : std_logic_vector (2 downto 0) := (others => '0');
-  
+  signal send_mac_next, send_mac_read : std_logic := '0';
   
 
   signal FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4 : std_logic;
@@ -91,20 +91,25 @@ architecture controlUnit_arch of controlUnit is
   signal data_out_CU_fcs1, data_out_CU_fcs2, data_out_CU_fcs3, data_out_CU_fcs4 : std_logic_vector(7 downto 0) := (others => '0');
 
   signal prog_start1, prog_start2, prog_start3, prog_start4 : std_logic := '0';
+  signal prog_start1_next, prog_start2_next, prog_start3_next, prog_start4_next : std_logic := '0';
+
   signal delayclock1, delayclock2, delayclock3, delayclock4 : integer := 0;
   signal checkedp1, checkedp2, checkedp3, checkedp4 : std_logic := '0';
+  signal checkedp1_next, checkedp2_next, checkedp3_next, checkedp4_next : std_logic := '0';
+
   -- signal holdsel1, holdsel2, holdsel3, holdsel4 : std_logic_vector (3 downto 0);
   signal delaydone1, delaydone2, delaydone3, delaydone4 : std_logic := '0';
   signal rddone1, rddone2, rddone3, rddone4 : std_logic;
   signal keepsel1, keepsel2, keepsel3, keepsel4 : std_logic_vector (3 downto 0);
-  
+  signal keepsel1_next, keepsel2_next, keepsel3_next, keepsel4_next : std_logic_vector (3 downto 0);
 
   
 begin
 
   dst_mac <= dst_mac_next;
   src_mac <= src_mac_next;
-
+  inc_port <= inc_port_next;
+  send_mac <= send_mac_next;
 
   STATE_MEMORY_LOGIC : process (clk, reset, next_state, round_robin_next,
     send_pkt1_next, send_pkt2_next, send_pkt3_next, send_pkt4_next, delayclock1, delayclock2, delayclock3, delayclock4,
@@ -119,6 +124,20 @@ begin
       round_robin <= round_robin_next;
       dst_mac_read <= dst_mac_next;
       src_mac_read <= src_mac_next;
+      inc_port_read <= inc_port_next;
+      send_mac_read <= send_mac_next;
+      checkedp1 <= checkedp1_next;
+      checkedp2 <= checkedp2_next;
+      checkedp3 <= checkedp3_next;
+      checkedp4 <= checkedp4_next;
+      keepsel1 <= keepsel1_next;
+      keepsel2 <= keepsel2_next;
+      keepsel3 <= keepsel3_next;
+      keepsel4 <= keepsel4_next;
+      prog_start1 <= prog_start1_next;
+      prog_start2 <= prog_start2_next;
+      prog_start3 <= prog_start3_next;
+      prog_start4 <= prog_start4_next;
       
 
       if send_pkt1_next = '1' then
@@ -277,18 +296,30 @@ begin
           port_sel_out4 <= "0000";
         end if;
       end if;
-      if rddone4 = '1' then
-        done_send4 <= '0';
-        rddone4 <= '0';
-      end if;
+        if rddone4 = '1' then
+          done_send4 <= '0';
+          rddone4 <= '0';
+        end if;
 
+      if valid1 = '1' then
+        prog_start1 <= '1';
+      end if;
+      if valid2 = '1' then
+        prog_start2 <= '1';
+      end if;
+      if valid3 = '1' then
+        prog_start3 <= '1';
+      end if;
+      if valid4 = '1' then
+        prog_start4 <= '1';
+      end if;
 
     end if;
   end process;
   
 
   NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4, port_sel, round_robin_next, valid1, valid2, valid3, valid4, prog_start1, prog_start2, prog_start3, prog_start4,
-    checkedp1, checkedp2, checkedp3, checkedp4)
+    checkedp1_next, checkedp2_next, checkedp3_next, checkedp4_next)
   begin
     next_state <= current_state;
 
@@ -296,28 +327,28 @@ begin
       when idle => next_state <= port1;
 
         when port1 =>
-        if valid1 = '0' and prog_start1 = '1' and FCS_error_CU1 = '0' and checkedp1 = '0' then
+        if valid1 = '0' and prog_start1 = '1' and FCS_error_CU1 = '0' and checkedp1_next = '0' then
           next_state <= wait_answer;
         else
           next_state <= port2;
         end if;
           
         when port2 =>
-        if valid2 = '0' and prog_start2 = '1' and FCS_error_CU2 = '0' and checkedp2 = '0'then
+        if valid2 = '0' and prog_start2 = '1' and FCS_error_CU2 = '0' and checkedp2_next = '0'then
           next_state <= wait_answer;
         else
           next_state <= port3;
         end if;
 
         when port3 =>
-        if valid3 = '0' and prog_start3 = '1' and FCS_error_CU3 = '0' and checkedp3 = '0' then
+        if valid3 = '0' and prog_start3 = '1' and FCS_error_CU3 = '0' and checkedp3_next = '0' then
           next_state <= wait_answer;
         else
           next_state <= port4;
         end if;
 
         when port4 =>
-        if valid4 = '0' and prog_start4 = '1' and FCS_error_CU4 = '0' and checkedp4 = '0' then
+        if valid4 = '0' and prog_start4 = '1' and FCS_error_CU4 = '0' and checkedp4_next = '0' then
           next_state <= wait_answer;
         else
           next_state <= port1;
@@ -343,7 +374,8 @@ begin
   end process;
   
   OUTPUT_LOGIC : process (current_state, round_robin, FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4, checkedp1, checkedp2, checkedp3, checkedp4, valid1, valid2, valid3, valid4, port_sel,
-    send_pkt1, send_pkt2, send_pkt3, send_pkt4, dst_mac_addr1, src_mac_addr1, dst_mac_addr2, src_mac_addr2, dst_mac_addr3, src_mac_addr3, dst_mac_addr4, src_mac_addr4, dst_mac_read, src_mac_read)
+    send_pkt1, send_pkt2, send_pkt3, send_pkt4, dst_mac_addr1, src_mac_addr1, dst_mac_addr2, src_mac_addr2, dst_mac_addr3, src_mac_addr3, dst_mac_addr4, src_mac_addr4, dst_mac_read, src_mac_read,
+    send_mac_read, inc_port_read, keepsel1, keepsel2, keepsel3, keepsel4, prog_start1, prog_start2, prog_start3, prog_start4)
   begin
     round_robin_next <= round_robin;
     send_pkt1_next <= send_pkt1;
@@ -353,6 +385,20 @@ begin
 
     src_mac_next <= src_mac_read;
     dst_mac_next <= dst_mac_read;
+    send_mac_next <= send_mac_read;
+    inc_port_next <= inc_port_read;
+    checkedp1_next <= checkedp1;
+    checkedp2_next <= checkedp2;
+    checkedp3_next <= checkedp3;
+    checkedp4_next <= checkedp4;
+    keepsel1_next <= keepsel1;
+    keepsel2_next <= keepsel2;
+    keepsel3_next <= keepsel3;
+    keepsel4_next <= keepsel4;
+    prog_start1_next <= prog_start1;
+    prog_start2_next <= prog_start2;
+    prog_start3_next <= prog_start3;
+    prog_start4_next <= prog_start4;
     
     case current_state is
       when idle =>
@@ -362,13 +408,13 @@ begin
         dst_mac_next <= dst_mac_addr1;
         src_mac_next <= src_mac_addr1;
 
-        inc_port <= "001";
+        inc_port_next <= "001";
         if FCS_error_CU1 = '0' and checkedp1 = '0' and valid1 = '0' then
-          send_mac <= '1';
+          send_mac_next <= '1';
         end if;
         round_robin_next <= 1;
         if valid1 = '1' then
-          checkedp1 <= '0';
+          checkedp1_next <= '0';
         end if;
 
       when port2 =>
@@ -376,14 +422,14 @@ begin
         dst_mac_next <= dst_mac_addr2;
         src_mac_next <= src_mac_addr2;
         
-        inc_port <= "010";
+        inc_port_next <= "010";
         if FCS_error_CU2 = '0' and checkedp2 = '0' and valid2 = '0' then
-          send_mac <= '1';
+          send_mac_next <= '1';
         end if;  
         round_robin_next <= 2;
 
         if valid2 = '1' then
-          checkedp2 <= '0';
+          checkedp2_next <= '0';
         end if;
 
       when port3 =>
@@ -391,14 +437,14 @@ begin
         dst_mac_next <= dst_mac_addr3;
         src_mac_next <= src_mac_addr3;
         
-        inc_port <= "011";
+        inc_port_next <= "011";
         if FCS_error_CU3 = '0' and checkedp3 = '0' and valid3 = '0' then
-          send_mac <= '1';
+          send_mac_next <= '1';
         end if;  
         round_robin_next <= 3;
 
         if valid3 = '1' then
-          checkedp3 <= '0';
+          checkedp3_next <= '0';
         end if;
 
       when port4 =>
@@ -406,37 +452,37 @@ begin
         dst_mac_next <= dst_mac_addr4;
         src_mac_next <= src_mac_addr4;
         
-        inc_port <= "100";
+        inc_port_next <= "100";
         if FCS_error_CU4 = '0' and checkedp4 = '0' and valid4 = '0' then
-          send_mac <= '1';
+          send_mac_next <= '1';
         end if;  
         round_robin_next <= 4;
         
         if valid4 = '1' then
-          checkedp4 <= '0';
+          checkedp4_next <= '0';
         end if;
 
       when wait_answer =>
-      send_mac <= '0';
+      send_mac_next <= '0';
         if round_robin = 1 and port_sel /= "0000" then
           send_pkt1_next <= '1';
-          keepsel1 <= port_sel;
-          checkedp1 <= '1';
+          keepsel1_next <= port_sel;
+          checkedp1_next <= '1';
         end if;
         if round_robin = 2 and port_sel /= "0000" then
           send_pkt2_next <= '1';
-          keepsel2 <= port_sel;
-          checkedp2 <= '1';
+          keepsel2_next <= port_sel;
+          checkedp2_next <= '1';
         end if;
         if round_robin = 3 and port_sel /= "0000" then
           send_pkt3_next <= '1';
-          keepsel3 <= port_sel;
-          checkedp3 <= '1';
+          keepsel3_next <= port_sel;
+          checkedp3_next <= '1';
         end if;
         if round_robin = 4 and port_sel /= "0000" then
           send_pkt4_next <= '1';
-          keepsel4 <= port_sel;
-          checkedp4 <= '1';
+          keepsel4_next <= port_sel;
+          checkedp4_next <= '1';
         end if;
 
       when others =>
@@ -504,21 +550,21 @@ begin
       data_out => data_out_CU_fcs4
     );    
 
-    process (valid1, valid2, valid3, valid4)
-    begin
-        if valid1 = '1' then
-            prog_start1 <= '1';
-        end if;
-        if valid2 = '1' then
-            prog_start2 <= '1';
-        end if;
-        if valid3 = '1' then
-            prog_start3 <= '1';
-        end if;
-        if valid4 = '1' then
-            prog_start4 <= '1';
-        end if;
-    end process;
+    -- process (valid1, valid2, valid3, valid4)
+    -- begin
+    --     if valid1 = '1' then
+    --         prog_start1 <= '1';
+    --     end if;
+    --     if valid2 = '1' then
+    --         prog_start2_next <= '1';
+    --     end if;
+    --     if valid3 = '1' then
+    --         prog_start3_next <= '1';
+    --     end if;
+    --     if valid4 = '1' then
+    --         prog_start4_next <= '1';
+    --     end if;
+    -- end process;
     
     
 end architecture;

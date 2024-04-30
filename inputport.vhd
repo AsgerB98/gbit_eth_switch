@@ -21,30 +21,6 @@ entity inputport is
 end entity;
 
 architecture inputport_arch of inputport is
-  signal fcs_fromfcs : std_logic;
-  
-  signal empty_fifo : std_logic := '0';
-  signal full_fifo : std_logic := '0';
-  signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
-
-  signal SoF  : std_logic := '0';
-  signal counter : integer := 0;
-
-  signal tempsrc : std_logic_vector (47 downto 0) := (others => '0');
-  signal tempdst : std_logic_vector (47 downto 0) := (others => '0');
-
-  signal read_fifo : std_logic := '0';
-  signal started : std_logic := '0';
-  signal numbytes : integer := 0;
-  signal curr_byte : integer := 0;
-  signal send_pkt : std_logic := '0';
-  
-
-  signal delay_sig, delay_sig_after : std_logic := '0';
-  
-
-  
-    
   component FIFOSwitch is
     port (
       clock		: IN STD_LOGIC ;
@@ -67,10 +43,33 @@ architecture inputport_arch of inputport is
       fcs_error : out std_logic
     );
   end component;
+
+
+  signal fcs_fromfcs : std_logic;
+  
+  signal empty_fifo : std_logic := '0';
+  signal full_fifo : std_logic := '0';
+  signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
+
+  signal SoF  : std_logic := '0';
+  signal counter : integer := 0;
+
+  signal tempsrc : std_logic_vector (47 downto 0) := (others => '1');
+  signal tempdst : std_logic_vector (47 downto 0) := (others => '0');
+
+  signal read_fifo : std_logic := '0';
+  signal started : std_logic := '0';
+  signal numbytes : integer := 0;
+  signal curr_byte : integer := 0;
+  signal send_pkt : std_logic := '0';
+
+  signal delay_sig, delay_sig_after : std_logic := '0';  
+  signal test : std_logic := '0';
+  
   
 begin
   fcs_error_IP <= fcs_fromfcs;
-  clk_proc : process (clk, counter, valid, SoF, send_data, send_pkt, fcs_fromfcs, delay_sig)
+  clk_proc : process (clk, reset, counter, valid, SoF, send_data, send_pkt, fcs_fromfcs, delay_sig)
   begin
     if reset = '1' then
 
@@ -78,6 +77,7 @@ begin
       if valid = '1' then
         counter <= counter +1;
         started <= '1';
+        --SoF <= '1';
       end if;
       
       -- Prepping the MAC addrs:
@@ -140,7 +140,6 @@ begin
       SoF <= '1';
     end if;
 
-
   end process;
 
 
@@ -164,6 +163,5 @@ begin
       data_in => data_in,
       fcs_error => fcs_fromfcs
     );
-
 
 end architecture;
