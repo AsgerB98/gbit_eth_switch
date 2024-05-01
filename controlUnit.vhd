@@ -76,7 +76,7 @@ architecture controlUnit_arch of controlUnit is
   signal dst_mac_addr1, dst_mac_addr2, dst_mac_addr3, dst_mac_addr4: std_logic_vector (47 downto 0);
 
   signal size_of_packet1, size_of_packet2, size_of_packet3, size_of_packet4 : integer;
-  signal sending_packet1, sending_packet2, sending_packet3, sending_packet4 : integer := 0;
+  signal sending_packet1, sending_packet2, sending_packet3, sending_packet4 : integer range 0 to 2000 := 0;
 
   signal send_pkt1, send_pkt2, send_pkt3, send_pkt4 : std_logic := '0';
   signal send_pkt1_next, send_pkt2_next, send_pkt3_next, send_pkt4_next : std_logic := '0';
@@ -93,7 +93,7 @@ architecture controlUnit_arch of controlUnit is
   signal prog_start1, prog_start2, prog_start3, prog_start4 : std_logic := '0';
   signal prog_start1_next, prog_start2_next, prog_start3_next, prog_start4_next : std_logic := '0';
 
-  signal delayclock1, delayclock2, delayclock3, delayclock4 : integer := 0;
+  signal delayclock1, delayclock2, delayclock3, delayclock4 : integer range 0 to 2:= 0;
   signal checkedp1, checkedp2, checkedp3, checkedp4 : std_logic := '0';
   signal checkedp1_next, checkedp2_next, checkedp3_next, checkedp4_next : std_logic := '0';
 

@@ -59,8 +59,8 @@ architecture inputport_arch of inputport is
 
   signal read_fifo : std_logic := '0';
   signal started : std_logic := '0';
-  signal numbytes : integer := 0;
-  signal curr_byte : integer := 0;
+  signal numbytes : integer range 0 to 2000:= 0;
+  signal curr_byte : integer range 0 to 2000:= 0;
   signal send_pkt : std_logic := '0';
 
   signal delay_sig, delay_sig_after : std_logic := '0';  

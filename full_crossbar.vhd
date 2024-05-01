@@ -85,8 +85,8 @@ architecture full_crossbar_arch of full_crossbar is
   signal empty12, empty13, empty14, empty21, empty23, empty24, empty31, empty32, empty34, empty41, empty42, empty43 : std_logic;
   signal write12, write13, write14, write21, write23, write24, write31, write32, write34, write41, write42, write43 : std_logic := '0';
   signal data_out12, data_out13, data_out14, data_out21, data_out23, data_out24, data_out31, data_out32, data_out34, data_out41, data_out42, data_out43 : std_logic_vector (7 downto 0) := (others => '0');
-  signal holdsel1, holdsel2, holdsel3, holdsel4 : std_logic_vector (3 downto 0);
-  signal holdsel1_next, holdsel2_next, holdsel3_next, holdsel4_next : std_logic_vector (3 downto 0);
+  signal holdsel1, holdsel2, holdsel3, holdsel4 : std_logic_vector (3 downto 0) := (others => '0');
+  signal holdsel1_next, holdsel2_next, holdsel3_next, holdsel4_next : std_logic_vector (3 downto 0) := (others => '0');
   signal write12_next, write13_next, write14_next, write21_next, write23_next, write24_next, write31_next, write32_next, write34_next, write41_next, write42_next, write43_next : std_logic := '0';
 
 begin
