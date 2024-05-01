@@ -69,6 +69,10 @@ architecture full_crossbar_arch of full_crossbar is
     );
   end component;
 
+  signal data_out1_next, data_out2_next, data_out3_next, data_out4_next : std_logic_vector (7 downto 0) := (others => '0');
+  signal data_out1_read, data_out2_read, data_out3_read, data_out4_read : std_logic_vector (7 downto 0) := (others => '0');
+  
+  
   signal fullfifo : std_logic;
   signal read12, read13, read14, read21, read23, read24, read31, read32, read34, read41, read42, read43 : std_logic := '0';
   signal full12, full13, full14, full21, full23, full24, full31, full32, full34, full41, full42, full43 : std_logic;
@@ -82,103 +86,148 @@ architecture full_crossbar_arch of full_crossbar is
   signal write12, write13, write14, write21, write23, write24, write31, write32, write34, write41, write42, write43 : std_logic := '0';
   signal data_out12, data_out13, data_out14, data_out21, data_out23, data_out24, data_out31, data_out32, data_out34, data_out41, data_out42, data_out43 : std_logic_vector (7 downto 0) := (others => '0');
   signal holdsel1, holdsel2, holdsel3, holdsel4 : std_logic_vector (3 downto 0);
-
-
+  signal holdsel1_next, holdsel2_next, holdsel3_next, holdsel4_next : std_logic_vector (3 downto 0);
+  signal write12_next, write13_next, write14_next, write21_next, write23_next, write24_next, write31_next, write32_next, write34_next, write41_next, write42_next, write43_next : std_logic := '0';
 
 begin
 
+  data_out1 <= data_out1_next;
+  data_out2 <= data_out2_next;
+  data_out3 <= data_out3_next;
+  data_out4 <= data_out4_next;
+  
   process (clk, reset)
   begin
     if reset = '1' then
 
     elsif rising_edge(clk) then
+      holdsel1 <= holdsel1_next;
+      holdsel2 <= holdsel2_next;
+      holdsel3 <= holdsel3_next;
+      holdsel4 <= holdsel4_next;
+      
+      data_out1_read <= data_out1_next;
+      data_out2_read <= data_out2_next;
+      data_out3_read <= data_out3_next;
+      data_out4_read <= data_out4_next;
 
+      write12 <= write12_next;
+      write13 <= write13_next;
+      write14 <= write14_next;
+      write21 <= write21_next;
+      write23 <= write23_next;
+      write24 <= write24_next;
+      write31 <= write31_next;
+      write32 <= write32_next;
+      write34 <= write34_next;
+      write41 <= write41_next;
+      write42 <= write42_next;
+      write43 <= write43_next;
+      
       end if;
 
 
   end process;
 
 
-  process (done1, done2, done3, done4, port_sel_in1, port_sel_in2, port_sel_in3, port_sel_in4, inport1, inport2, inport3, inport4, holdsel1, holdsel2, holdsel3, holdsel4)
+  process (done1, done2, done3, done4, port_sel_in1, port_sel_in2, port_sel_in3, port_sel_in4, inport1, inport2, inport3, inport4, holdsel1, holdsel2, holdsel3, holdsel4,
+    data_out1_read, data_out2_read, data_out3_read, data_out4_read, write12, write13, write14, write21, write23, write24, write31, write32, write34, write41, write42, write43 )
   begin
+    holdsel1_next <= holdsel1;
+    holdsel2_next <= holdsel2;
+    holdsel3_next <= holdsel3;
+    holdsel4_next <= holdsel4;
+
+    write12_next <= write12;
+    write13_next <= write13;
+    write14_next <= write14;
+    write21_next <= write21;
+    write23_next <= write23;
+    write24_next <= write24;
+    write31_next <= write31;
+    write32_next <= write32;
+    write34_next <= write34;
+    write41_next <= write41;
+    write42_next <= write42;
+    write43_next <= write43;
 
     if port_sel_in1 /= "0000" then
-      holdsel1 <= port_sel_in1;
+      holdsel1_next <= port_sel_in1;
     end if;
 
     if port_sel_in2 /= "0000" then
-      holdsel2 <= port_sel_in2;
+      holdsel2_next <= port_sel_in2;
     end if;
     
     if port_sel_in3 /= "0000" then
-      holdsel3 <= port_sel_in3;
+      holdsel3_next <= port_sel_in3;
     end if;
     
     if port_sel_in4 /= "0000" then
-      holdsel4 <= port_sel_in4;
+      holdsel4_next <= port_sel_in4;
     end if;
     
 
     if done1 = '1' then
-      holdsel1 <= "0000";
+      holdsel1_next <= "0000";
     end if;
 
     if done2 = '1' then
-      holdsel2 <= "0000";
+      holdsel2_next <= "0000";
     end if;
 
     if done3 = '1' then
-      holdsel3 <= "0000";
+      holdsel3_next <= "0000";
     end if;
 
     if done4 = '1' then
-      holdsel4 <= "0000";
+      holdsel4_next <= "0000";
     end if;
   
 
     case holdsel1 is
     when "0010" =>
-        write12 <= '1';
-        write13 <= '0';
-        write14 <= '0';
+        write12_next <= '1';
+        write13_next <= '0';
+        write14_next <= '0';
 
         if done1 = '1' then
-          write12 <= '0';
-          write13 <= '0';
-          write14 <= '0';
+          write12_next <= '0';
+          write13_next <= '0';
+          write14_next <= '0';
       end if;
 
     when "0011" =>
-      write12 <= '0';
-      write13 <= '1';
-      write14 <= '0';
+      write12_next <= '0';
+      write13_next <= '1';
+      write14_next <= '0';
       
       if done1 = '1' then
-        write12 <= '0';
-        write13 <= '0';
-        write14 <= '0';
+        write12_next <= '0';
+        write13_next <= '0';
+        write14_next <= '0';
     end if;
 
     when "0100" =>
-      write12 <= '0';
-      write13 <= '0';
-      write14 <= '1';
+      write12_next <= '0';
+      write13_next <= '0';
+      write14_next <= '1';
 
       if done1 = '1' then
-        write12 <= '0';
-        write13 <= '0';
-        write14 <= '0';
+        write12_next <= '0';
+        write13_next <= '0';
+        write14_next <= '0';
     end if;
 
     when "1111" =>
-        write12 <= '1';
-        write13 <= '1';
-        write14 <= '1';
+        write12_next <= '1';
+        write13_next <= '1';
+        write14_next <= '1';
 
         if done1 = '1' then
-          write12 <= '0';
-          write13 <= '0';
-          write14 <= '0';
+          write12_next <= '0';
+          write13_next <= '0';
+          write14_next <= '0';
       end if;
   
     when others =>
@@ -187,44 +236,44 @@ begin
 
   case holdsel2 is
     when "0001" =>
-      write21 <= '1';
-      write23 <= '0';
-      write24 <= '0';
+      write21_next <= '1';
+      write23_next <= '0';
+      write24_next <= '0';
       if done2 = '1' then
-        write21 <= '0';
-        write23 <= '0';
-        write24 <= '0';
+        write21_next <= '0';
+        write23_next <= '0';
+        write24_next <= '0';
     end if;
 
     when "0011" =>
-      write21 <= '0';
-      write23 <= '1';
-      write24 <= '0';
+      write21_next <= '0';
+      write23_next <= '1';
+      write24_next <= '0';
       if done2 = '1' then
-        write21 <= '0';
-        write23 <= '0';
-        write24 <= '0';
+        write21_next <= '0';
+        write23_next <= '0';
+        write24_next <= '0';
     end if;
 
     when "0100" =>
-      write21 <= '0';
-      write23 <= '0';
-      write24 <= '1';
+      write21_next <= '0';
+      write23_next <= '0';
+      write24_next <= '1';
       if done2 = '1' then
-        write21 <= '0';
-        write23 <= '0';
-        write24 <= '0';
+        write21_next <= '0';
+        write23_next <= '0';
+        write24_next <= '0';
     end if;
 
     when "1111" =>
-        write21 <= '1';
-        write23 <= '1';
-        write24 <= '1';
+        write21_next <= '1';
+        write23_next <= '1';
+        write24_next <= '1';
 
         if done2 = '1' then
-          write21 <= '0';
-          write23 <= '0';
-          write24 <= '0';
+          write21_next <= '0';
+          write23_next <= '0';
+          write24_next <= '0';
       end if;
 
     when others =>
@@ -233,43 +282,43 @@ begin
 
   case holdsel3 is
     when "0001" =>
-      write31 <= '1';
-      write32 <= '0';
-      write34 <= '0';
+      write31_next <= '1';
+      write32_next <= '0';
+      write34_next <= '0';
       if done3 = '1' then
-        write31 <= '0';
-        write32 <= '0';
-        write34 <= '0';
+        write31_next <= '0';
+        write32_next <= '0';
+        write34_next <= '0';
       end if;
 
     when "0010" =>
-      write31 <= '0';
-      write32 <= '1';
-      write34 <= '0';
+      write31_next <= '0';
+      write32_next <= '1';
+      write34_next <= '0';
       if done3 = '1' then
-        write31 <= '0';
-        write32 <= '0';
-        write34 <= '0';
+        write31_next <= '0';
+        write32_next <= '0';
+        write34_next <= '0';
       end if;
 
     when "0100" =>
-      write31 <= '0';
-      write32 <= '0';
-      write34 <= '1';
+      write31_next <= '0';
+      write32_next <= '0';
+      write34_next <= '1';
       if done3 = '1' then
-        write31 <= '0';
-        write32 <= '0';
-        write34 <= '0';
+        write31_next <= '0';
+        write32_next <= '0';
+        write34_next <= '0';
       end if;
     
     when "1111" =>
-        write31 <= '1';
-        write32 <= '1';
-        write34 <= '1';
+        write31_next <= '1';
+        write32_next <= '1';
+        write34_next <= '1';
       if done3 = '1' then
-        write31 <= '0';
-        write32 <= '0';
-        write34 <= '0';
+        write31_next <= '0';
+        write32_next <= '0';
+        write34_next <= '0';
       end if;
     when others =>
       null;
@@ -277,43 +326,43 @@ begin
 
   case holdsel4 is
     when "0001" =>
-      write41 <= '1';
-      write42 <= '0';
-      write43 <= '0';
+      write41_next <= '1';
+      write42_next <= '0';
+      write43_next <= '0';
       if done4 = '1' then
-        write41 <= '0';
-        write42 <= '0';
-        write43 <= '0';
+        write41_next <= '0';
+        write42_next <= '0';
+        write43_next <= '0';
       end if;
 
     when "0010" =>
-      write41 <= '0';
-      write42 <= '1';
-      write43 <= '0';
+      write41_next <= '0';
+      write42_next <= '1';
+      write43_next <= '0';
       if done4 = '1' then
-        write41 <= '0';
-        write42 <= '0';
-        write43 <= '0';
+        write41_next <= '0';
+        write42_next <= '0';
+        write43_next <= '0';
       end if;
 
     when "0011" =>
-      write41 <= '0';
-      write42 <= '0';
-      write43 <= '1';
+      write41_next <= '0';
+      write42_next <= '0';
+      write43_next <= '1';
       if done4 = '1' then
-        write41 <= '0';
-        write42 <= '0';
-        write43 <= '0';
+        write41_next <= '0';
+        write42_next <= '0';
+        write43_next <= '0';
       end if;
 
     when "1111" =>
-        write41 <= '1';
-        write42 <= '1';
-        write43 <= '1';
+        write41_next <= '1';
+        write42_next <= '1';
+        write43_next <= '1';
       if done4 = '1' then
-        write41 <= '0';
-        write42 <= '0';
-        write43 <= '0';
+        write41_next <= '0';
+        write42_next <= '0';
+        write43_next <= '0';
       end if;
     when others =>
       null;
@@ -322,38 +371,44 @@ begin
 end process;
 
 process (read12, read13, read14, read21, read23, read24, read31, read32, read34, read41, read42, read43,
-  data_out12, data_out13, data_out14, data_out21, data_out23, data_out24, data_out31, data_out32, data_out34, data_out41, data_out42, data_out43)
+  data_out12, data_out13, data_out14, data_out21, data_out23, data_out24, data_out31, data_out32, data_out34, data_out41, data_out42, data_out43,
+  data_out1_read, data_out2_read, data_out3_read, data_out4_read)
 begin
+  data_out1_next <= data_out1_read;
+  data_out2_next <= data_out2_read;
+  data_out3_next <= data_out3_read;
+  data_out4_next <= data_out4_read;
+
   if read21 = '1' then
-    data_out1 <= data_out21;
+    data_out1_next <= data_out21;
   elsif read31 = '1' then
-    data_out1 <= data_out31;
+    data_out1_next <= data_out31;
   elsif read41 = '1' then
-    data_out1 <= data_out41;
+    data_out1_next <= data_out41;
   end if;
 
   if read12 = '1' then
-    data_out2 <= data_out12;
+    data_out2_next <= data_out12;
   elsif read32 = '1' then
-    data_out2 <= data_out32;
+    data_out2_next <= data_out32;
   elsif read42 = '1' then
-    data_out2 <= data_out42;
+    data_out2_next <= data_out42;
   end if;
 
   if read13 = '1' then
-    data_out3 <= data_out13;
+    data_out3_next <= data_out13;
   elsif read23 = '1' then
-    data_out3 <= data_out23;
+    data_out3_next <= data_out23;
   elsif read43 = '1' then
-    data_out3 <= data_out43;
+    data_out3_next <= data_out43;
   end if;
 
   if read14 = '1' then
-    data_out4 <= data_out14;
+    data_out4_next <= data_out14;
   elsif read24 = '1' then
-    data_out4 <= data_out24;
+    data_out4_next <= data_out24;
   elsif read34 = '1' then
-    data_out4 <= data_out34;
+    data_out4_next <= data_out34;
   end if;
 
 end process;

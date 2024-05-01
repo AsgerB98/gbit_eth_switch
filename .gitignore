@@ -13,3 +13,11 @@ db/
 output_files/
 *.qpf
 *.qsf
+*json
+*cbd
+*dpi
+*sig
+*_info
+*cdb
+*kpt
+*hdb

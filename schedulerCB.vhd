@@ -27,6 +27,9 @@ end entity;
 
   architecture schedulerCB_arch of schedulerCB is
     
+    signal outfifo1_next, outfifo2_next, outfifo3_next : std_logic := '0';
+    signal outfifo1_read, outfifo2_read, outfifo3_read : std_logic := '0';
+    
     type State_type is (idle, port1, port2, port3, wait_pkt);
     signal current_state, next_state : State_type;
     signal delaydone1, delaydone2 : std_logic := '0';
@@ -34,6 +37,9 @@ end entity;
     
 
   begin
+    outfifo1 <= outfifo1_next;
+    outfifo2 <= outfifo2_next;
+    outfifo3 <= outfifo3_next;
   
     STATE_MEMORY_LOGIC : process (clk, reset, sendfifo1, sendfifo2, sendfifo3)
     begin
@@ -41,7 +47,11 @@ end entity;
         current_state <= idle;
       elsif rising_edge(clk) then
         current_state <= next_state;
-
+        
+        outfifo1_read <= outfifo1_next;
+        outfifo2_read <= outfifo2_next;
+        outfifo3_read <= outfifo3_next;
+        
       end if;
     end process;
 
@@ -96,28 +106,32 @@ end entity;
       end case;
     end process;
 
-    OUTPUT_LOGIC : process (current_state)
+    OUTPUT_LOGIC : process (current_state, outfifo1_read, outfifo2_read, outfifo3_read)
     begin
+      outfifo1_next <= outfifo1_read;
+      outfifo2_next <= outfifo2_read;
+      outfifo3_next <= outfifo3_read;
+      
       case current_state is
         when port1 =>
-          outfifo1 <= '1';
-          outfifo2 <= '0';
-          outfifo3 <= '0';
+          outfifo1_next <= '1';
+          outfifo2_next <= '0';
+          outfifo3_next <= '0';
 
         when port2 =>
-          outfifo1 <= '0';
-          outfifo2 <= '1';
-          outfifo3 <= '0';
+          outfifo1_next <= '0';
+          outfifo2_next <= '1';
+          outfifo3_next <= '0';
         
         when port3 =>
-          outfifo1 <= '0';
-          outfifo2 <= '0';
-          outfifo3 <= '1';
+          outfifo1_next <= '0';
+          outfifo2_next <= '0';
+          outfifo3_next <= '1';
         
         when wait_pkt =>
-          outfifo1 <= '0';
-          outfifo2 <= '0';
-          outfifo3 <= '0';
+          outfifo1_next <= '0';
+          outfifo2_next <= '0';
+          outfifo3_next <= '0';
 
         when others => null;
       end case;
