@@ -30,7 +30,12 @@ entity full_crossbar is
     data_out1 : out std_logic_vector (7 downto 0);
     data_out2 : out std_logic_vector (7 downto 0);
     data_out3 : out std_logic_vector (7 downto 0);
-    data_out4 : out std_logic_vector (7 downto 0)
+    data_out4 : out std_logic_vector (7 downto 0);
+    
+    outvalid1 : out std_logic;
+    outvalid2 : out std_logic;
+    outvalid3 : out std_logic;
+    outvalid4 : out std_logic
        
   );
 end entity;
@@ -413,6 +418,34 @@ begin
 
 end process;
 
+valid_proc : process (empty12, empty13, empty14, empty21, empty23, empty24, empty31, empty32, empty34, empty41, empty42, empty43)
+begin
+  if empty21 = '1' and empty31 = '1' and empty41 = '1' then
+    outvalid1 <= '0';
+  else
+    outvalid1 <= '1';
+  end if;
+
+  if empty12 = '1' and empty32 = '1' and empty42 = '1' then
+    outvalid2 <= '0';
+  else
+    outvalid2 <= '1';
+  end if;  
+
+  if empty13 = '1' and empty23 = '1' and empty43 = '1' then
+    outvalid3 <= '0';
+  else
+    outvalid3 <= '1';
+  end if;  
+
+  if empty14 = '1' and empty24 = '1' and empty34 = '1' then
+    outvalid4 <= '0';
+  else
+    outvalid4 <= '1';
+  end if;  
+end process;
+
+
   scheduler1 : schedulerCB
     port map (
       clk   => clk,
@@ -621,5 +654,3 @@ end process;
 
 
 end architecture;
-
-

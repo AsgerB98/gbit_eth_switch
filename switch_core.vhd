@@ -13,21 +13,24 @@ entity switch_core is
         reset : in std_logic;
         
         inport1 : in std_logic_vector (7 downto 0);
-        valid1  : in std_logic;
-
         inport2 : in std_logic_vector (7 downto 0);
-        valid2  : in std_logic;
-
         inport3 : in std_logic_vector (7 downto 0);
-        valid3  : in std_logic;
-
         inport4 : in std_logic_vector (7 downto 0);
+
+        valid1  : in std_logic;
+        valid2  : in std_logic;
+        valid3  : in std_logic;
         valid4  : in std_logic;
 
         outport1 : out std_logic_vector (7 downto 0);
         outport2 : out std_logic_vector (7 downto 0);
         outport3 : out std_logic_vector (7 downto 0);
-        outport4 : out std_logic_vector (7 downto 0)
+        outport4 : out std_logic_vector (7 downto 0);
+
+        outvalid1 : out std_logic;
+        outvalid2 : out std_logic;
+        outvalid3 : out std_logic;
+        outvalid4 : out std_logic
     );
 end entity switch_core;
 
@@ -109,7 +112,12 @@ architecture switch_core_arch of switch_core is
       data_out1 : out std_logic_vector (7 downto 0);
       data_out2 : out std_logic_vector (7 downto 0);
       data_out3 : out std_logic_vector (7 downto 0);
-      data_out4 : out std_logic_vector (7 downto 0)
+      data_out4 : out std_logic_vector (7 downto 0);
+  
+      outvalid1 : out std_logic;
+      outvalid2 : out std_logic;
+      outvalid3 : out std_logic;
+      outvalid4 : out std_logic
          
     );
   end component;
@@ -212,7 +220,13 @@ begin
       data_out1 => outport1,
       data_out2 => outport2,
       data_out3 => outport3,
-      data_out4 => outport4
+      data_out4 => outport4,
+
+          
+      outvalid1 => outvalid1,
+      outvalid2 => outvalid2,
+      outvalid3 => outvalid3,
+      outvalid4 => outvalid4
     );
 
 
