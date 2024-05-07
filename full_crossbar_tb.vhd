@@ -1,4 +1,3 @@
-
 library IEEE;
 library std;
 use IEEE.std_logic_1164.all;
@@ -8,108 +7,95 @@ use std.textio.all;
 use STD.textio.all;
 use IEEE.std_logic_textio.all;
 
-entity controlUnit_tb is
+entity full_crossbar_tb is
 end;
 
-architecture bench of controlUnit_tb is
+architecture bench of full_crossbar_tb is
   -- Clock period
   constant clk_period : time := 5 ns;
   -- Generics
   -- Ports
   signal clk : std_logic;
   signal reset : std_logic;
+
   signal inport1 : std_logic_vector (7 downto 0);
   signal inport2 : std_logic_vector (7 downto 0);
   signal inport3 : std_logic_vector (7 downto 0);
   signal inport4 : std_logic_vector (7 downto 0);
 
-  signal valid1 : std_logic;
-  signal valid2 : std_logic;
-  signal valid3 : std_logic;
-  signal valid4 : std_logic;
+  signal done1 : std_logic;
+  signal done2 : std_logic;
+  signal done3 : std_logic;
+  signal done4 : std_logic;
 
-  signal port_sel : std_logic_vector (3 downto 0);
-
-  signal port_sel_out1 : std_logic_vector (3 downto 0);
-  signal port_sel_out2 : std_logic_vector (3 downto 0);
-  signal port_sel_out3 : std_logic_vector (3 downto 0);
-  signal port_sel_out4 : std_logic_vector (3 downto 0);
-
-  signal dst_mac : std_logic_vector (47 downto 0);
-  signal src_mac : std_logic_vector (47 downto 0);
+  signal port_sel_in1 : std_logic_vector (3 downto 0);
+  signal port_sel_in2 : std_logic_vector (3 downto 0);
+  signal port_sel_in3 : std_logic_vector (3 downto 0);
+  signal port_sel_in4 : std_logic_vector (3 downto 0);
 
   signal data_out1 : std_logic_vector (7 downto 0);
   signal data_out2 : std_logic_vector (7 downto 0);
   signal data_out3 : std_logic_vector (7 downto 0);
   signal data_out4 : std_logic_vector (7 downto 0);
 
-  component controlUnit is
+
+  component full_crossbar is
     port (
-    clk   : in std_logic;
+      clk   : in std_logic;
     reset : in std_logic;
-        
+    
     inport1 : in std_logic_vector (7 downto 0);
     inport2 : in std_logic_vector (7 downto 0);
     inport3 : in std_logic_vector (7 downto 0);
     inport4 : in std_logic_vector (7 downto 0);
 
-    valid1  : in std_logic;
-    valid2  : in std_logic;
-    valid3  : in std_logic;
-    valid4  : in std_logic;
+    done1 : in std_logic;
+    done2 : in std_logic;
+    done3 : in std_logic;
+    done4 : in std_logic;
 
-    port_sel : in std_logic_vector (3 downto 0);
-
-    port_sel_out1 : out std_logic_vector (3 downto 0); --??
-    port_sel_out2 : out std_logic_vector (3 downto 0); --??
-    port_sel_out3 : out std_logic_vector (3 downto 0); --??
-    port_sel_out4 : out std_logic_vector (3 downto 0); --??
-        
-    dst_mac : out std_logic_vector (47 downto 0);
-    src_mac : out std_logic_vector (47 downto 0);
+    port_sel_in1 : in std_logic_vector (3 downto 0);
+    port_sel_in2 : in std_logic_vector (3 downto 0);
+    port_sel_in3 : in std_logic_vector (3 downto 0);
+    port_sel_in4 : in std_logic_vector (3 downto 0);
 
     data_out1 : out std_logic_vector (7 downto 0);
     data_out2 : out std_logic_vector (7 downto 0);
     data_out3 : out std_logic_vector (7 downto 0);
     data_out4 : out std_logic_vector (7 downto 0)
-        
+      
     );
   end component;
-
 begin
 
-  dut : controlUnit
+  dut : full_crossbar
   port map (
     clk => clk,
     reset => reset,
+
     inport1 => inport1,
     inport2 => inport2,
     inport3 => inport3,
     inport4 => inport4,
 
-    valid1 => valid1,
-    valid2 => valid2,
-    valid3 => valid3,
-    valid4 => valid4,
+    done1 => done1,
+    done2 => done2,
+    done3 => done3,
+    done4 => done4,
 
-    port_sel => port_sel,
-
-    port_sel_out1 => port_sel_out1,
-    port_sel_out2 => port_sel_out2,
-    port_sel_out3 => port_sel_out3,
-    port_sel_out4 => port_sel_out4,
-
-    dst_mac => dst_mac,
-    src_mac => src_mac,
+    port_sel_in1 => port_sel_in1,
+    port_sel_in2 => port_sel_in2,
+    port_sel_in3 => port_sel_in3,
+    port_sel_in4 => port_sel_in4,
 
     data_out1 => data_out1,
     data_out2 => data_out2,
     data_out3 => data_out3,
     data_out4 => data_out4
   );
-
-reading_proc : process (clk)
-  file input : TEXT open READ_MODE is "Input_packet.txt"; 
+-- clk <= not clk after clk_period/2;
+reading_proc : process (clk, reset)
+  file input : TEXT open READ_MODE is "Input_packet_CB.txt"; 
   
   variable current_read_line	: line;
   variable current_read_field	: std_logic_vector (7 downto 0);
@@ -119,24 +105,62 @@ reading_proc : process (clk)
 
 begin
 
-  if rising_edge(clk) then
+  if reset = '1' then
+    
+  
+  elsif rising_edge(clk) then
     readline(input, current_read_line);
     hread(current_read_line, current_read_field);
     read(current_read_line, current_write_line);
 
 
     inport1 <= current_read_field;
-    valid1 <= current_write_line;
+    done1 <= current_write_line;
+    --port_sel_in1 <= "0010";
 
     inport2 <= current_read_field;
-    valid2 <= current_write_line;
+    done2 <= current_write_line;
 
     inport3 <= current_read_field;
-    valid3 <= current_write_line;
+    done3 <= current_write_line;
 
     inport4 <= current_read_field;
-    valid4 <= current_write_line;
+    done4 <= current_write_line;
   end if;
+end process;
+
+portin : process
+begin
+  wait for clk_period;
+  port_sel_in1 <= "1111";
+  port_sel_in2 <= "0001";
+  port_sel_in3 <= "0001";
+  port_sel_in4 <= "0001";
+  
+  wait for 320 ns; -- Use 'wait for' instead of 'wait'
+  port_sel_in1 <= "0011";
+  port_sel_in2 <= "0011";
+  port_sel_in3 <= "0100";
+  port_sel_in4 <= "0001";
+  wait for 320 ns;
+  port_sel_in1 <= "0100";
+
+  wait for 320 ns;
+  port_sel_in4 <= "0011";
+
+  wait for 320 ns;
+  port_sel_in1 <= "1111";
+  
+  wait for 320 ns;
+  port_sel_in1 <= "0011";
+  wait; -- Add a wait statement to prevent the process from terminating immediately
+end process portin;
+
+
+reset_proc : process
+begin
+  reset <= '1'; wait for clk_period;
+  reset <= '0'; wait;
 end process;
 
 clk_process : process
@@ -144,6 +168,6 @@ begin
   clk <= '1'; wait for clk_period/2;
   clk <= '0'; wait for clk_period/2;
 
-end process clk_process;
+end process;
 
 end;

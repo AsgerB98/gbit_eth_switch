@@ -21,30 +21,6 @@ entity inputport is
 end entity;
 
 architecture inputport_arch of inputport is
-  signal fcs_fromfcs : std_logic;
-  
-  signal empty_fifo : std_logic := '0';
-  signal full_fifo : std_logic := '0';
-  signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
-
-  signal SoF  : std_logic := '0';
-  signal counter : integer := 0;
-
-  signal tempsrc : std_logic_vector (47 downto 0) := (others => '0');
-  signal tempdst : std_logic_vector (47 downto 0) := (others => '0');
-
-  signal read_fifo : std_logic := '0';
-  signal started : std_logic := '0';
-  signal numbytes : integer := 0;
-  signal curr_byte : integer := 0;
-  signal send_pkt : std_logic := '0';
-  
-
-  signal delay_sig, delay_sig_after : std_logic := '0';
-  
-
-  
-    
   component FIFOSwitch is
     port (
       clock		: IN STD_LOGIC ;
@@ -67,22 +43,55 @@ architecture inputport_arch of inputport is
       fcs_error : out std_logic
     );
   end component;
+
+
+  signal fcs_fromfcs : std_logic;
+  
+  signal empty_fifo : std_logic := '0';
+  signal full_fifo : std_logic := '0';
+  signal status_fifo : std_logic_vector (10 downto 0) := (others => '0');
+
+  signal SoF  : std_logic := '0';
+  signal counter : integer := 0;
+
+  signal tempsrc : std_logic_vector (47 downto 0) := (others => '1');
+  signal tempdst : std_logic_vector (47 downto 0) := (others => '0');
+
+  signal read_fifo : std_logic := '0';
+  signal started : std_logic := '0';
+  signal numbytes : integer range 0 to 2000:= 0;
+  signal curr_byte : integer range 0 to 2000:= 0;
+  signal send_pkt : std_logic := '0';
+
+  signal delay_sig, delay_sig_after : std_logic := '0';  
+  signal valid_delay : std_logic := '0';
+  --signal started : std_logic := '0';
+  
+  
   
 begin
   fcs_error_IP <= fcs_fromfcs;
-  clk_proc : process (clk, counter, valid, SoF, send_data, send_pkt, fcs_fromfcs, delay_sig)
+  clk_proc : process (clk, reset, valid)
   begin
     if reset = '1' then
 
     elsif rising_edge(clk) then
+      
       if valid = '1' then
         counter <= counter +1;
         started <= '1';
+        -- else
+        --   counter <= 0;
+        --SoF <= '1';
       end if;
+      valid_delay <= valid;
       
+      if SoF = '1' then
+        counter <= 0;
+      end if;
       -- Prepping the MAC addrs:
       case counter is
-        when 0 => SoF <= '0';
+        --when 0 => SoF <= '0';
         when 1 => tempsrc(47 downto 40) <= data_in;
         when 2 => tempsrc(39 downto 32) <= data_in;
         when 3 => tempsrc(31 downto 24) <= data_in;
@@ -132,16 +141,23 @@ begin
         packet_size <= counter;
       end if;
 
-
     end if;
 
-    if rising_edge(valid) then
-      counter <= 0;
-      SoF <= '1';
-    end if;
-
+    -- if rising_edge(valid) then
+    --   counter <= 0;
+    --   --SoF <= '1';
+    -- end if;
 
   end process;
+
+  sof_proc : process (valid_delay, valid)
+  begin
+    if valid = '1' and valid_delay = '0' then
+      SoF <= '1';
+  else
+    SoF <= '0';
+  end if;
+end process;
 
 
   fifo_ports : FIFOSwitch
@@ -164,6 +180,5 @@ begin
       data_in => data_in,
       fcs_error => fcs_fromfcs
     );
-
 
 end architecture;
