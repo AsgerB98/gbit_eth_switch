@@ -65,6 +65,13 @@ architecture inputport_arch of inputport is
   signal writefifo, writefifo_next          : std_logic                     := '0';
   signal wait_start, wait_start_next        : std_logic                     := '0';
   signal packet_size_next, packet_size_read : integer range 0 to 2000;
+  signal sendto_sig : std_logic_vector(7 downto 0) := (others => '0');
+  signal delay_sig_send : std_logic := '0';
+  signal delay_sig_send_extra : std_logic := '0';
+  
+  
+
+
 begin
   fcs_error_IP <= fcs_fromfcs;
   packet_size  <= packet_size_next;
@@ -79,6 +86,9 @@ begin
       packet_size_read <= packet_size_next;
       wait_start       <= wait_start_next;
 
+      delay_sig_send <= send_data;
+      delay_sig_send_extra <= delay_sig_send;
+
       if valid = '1' then
         if preamble = "1111111" then
           preamble <= (others => '0');
@@ -92,18 +102,18 @@ begin
         counter <= counter + 1;
 
         case counter is
-          when 0      => srcMac(47 downto 40) <= data_in;
-          when 1      => srcMac(39 downto 32) <= data_in;
-          when 2      => srcMac(31 downto 24) <= data_in;
-          when 3      => srcMac(23 downto 16) <= data_in;
-          when 4      => srcMac(15 downto 8)  <= data_in;
-          when 5      => srcMac(7 downto 0)   <= data_in;
-          when 6      => dstMac(47 downto 40) <= data_in;
-          when 7      => dstMac(39 downto 32) <= data_in;
-          when 8      => dstMac(31 downto 24) <= data_in;
-          when 9      => dstMac(23 downto 16) <= data_in;
-          when 10     => dstMac(15 downto 8) <= data_in;
-          when 11     => dstMac(7 downto 0)  <= data_in;
+          when 0  => srcMac(47 downto 40) <= data_in;
+          when 1  => srcMac(39 downto 32) <= data_in;
+          when 2  => srcMac(31 downto 24) <= data_in;
+          when 3  => srcMac(23 downto 16) <= data_in;
+          when 4  => srcMac(15 downto 8)  <= data_in;
+          when 5  => srcMac(7 downto 0)   <= data_in;
+          when 6  => dstMac(47 downto 40) <= data_in;
+          when 7  => dstMac(39 downto 32) <= data_in;
+          when 8  => dstMac(31 downto 24) <= data_in;
+          when 9  => dstMac(23 downto 16) <= data_in;
+          when 10 => dstMac(15 downto 8) <= data_in;
+          when 11 => dstMac(7 downto 0)  <= data_in;
           when others =>
             null;
         end case;
@@ -116,21 +126,27 @@ begin
 
       if send_data = '0' then
         read_fifo <= '0';
+        
+        if delay_sig_send_extra = '1' then
+        end if;
 
         if send_pkt = '1' then
           send_pkt  <= '1';
           read_fifo <= '1';
           curr_byte <= curr_byte + 1;
-          if curr_byte = packet_size_read then -- pkt done
+          if curr_byte = packet_size_read +1 then -- pkt done
             read_fifo <= '0';
             --delay_sig <= '0';
             curr_byte <= 0;
             send_pkt  <= '0';
           end if;
         end if;
-        
+
       elsif send_data = '1' then
+
+        --data_out <= sendto_sig;
         read_fifo <= '1';
+
 
       end if;
 
@@ -143,6 +159,15 @@ begin
     end if;
 
   end process;
+
+  process (delay_sig_send, sendto_sig)
+  begin
+    if delay_sig_send = '1' then
+      data_out <= sendto_sig;
+    end if;
+  end process;
+
+
 
   process (data_in, preamble, valid, counter, started, writefifo, packet_size_read, wait_start)
   begin
@@ -180,7 +205,7 @@ begin
     wrreq => writefifo_next,
     empty => empty_fifo,
     full  => full_fifo,
-    q     => data_out,
+    q     => sendto_sig,
     usedw => status_fifo
   );
 
