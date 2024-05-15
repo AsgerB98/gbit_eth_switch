@@ -264,7 +264,6 @@ begin
 
     end if;
   end process;
-  
 
   NEXT_STATE_LOGIC : process (current_state, FCS_error_CU1, FCS_error_CU2, FCS_error_CU3, FCS_error_CU4, port_sel, round_robin_next,
     valid1, valid2, valid3, valid4,checkedp1_next, checkedp2_next, checkedp3_next, checkedp4_next)

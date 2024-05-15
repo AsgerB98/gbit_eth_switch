@@ -22,3 +22,7 @@ output_files/
 *kpt
 *hdb
 *qws
+/incremental_db/
+c5*
+*md
+*svg

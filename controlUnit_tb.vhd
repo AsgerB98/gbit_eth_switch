@@ -146,4 +146,12 @@ begin
 
 end process clk_process;
 
+reset_process : process
+begin
+  reset <= '1';
+  wait for clk_period/2;  -- Adjust this to match your needs
+  reset <= '0';
+  wait;
+end process reset_process;
+
 end;
