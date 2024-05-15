@@ -104,12 +104,12 @@ begin
       valid2 <= current_write_line;
       -- done2 <= current_write_line;
 
-      inport3 <= current_read_field;
-      valid3 <= current_write_line;
-      -- --done3 <= current_write_line;
+      -- inport3 <= current_read_field;
+      -- valid3 <= current_write_line;
+      -- -- --done3 <= current_write_line;
 
-      inport4 <= current_read_field;
-       valid4 <= current_write_line;
+      -- inport4 <= current_read_field;
+      --  valid4 <= current_write_line;
       --done4 <= current_write_line;
     end if;
   end process;
